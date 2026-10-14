@@ -1,0 +1,19 @@
+METRPMNAME = VWMeteor
+METRPMFILES = meteor.files
+
+
+# The RPM requires uptodate tgz file
+meteorrpm: ~/.rpmmacros rpmcommon
+#   1. Create list of files to include in rpm
+	cd $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW; \
+	cat $(METRPMFILES) > tmp.txt; \
+	/bin/sed -e 's/^/\/usr\/include\/VW\//' tmp.txt > headerfiles.txt; \
+#   2. Set the version string in the spec file and cat together
+	/bin/sed -e 's/--VERSION--/'$(VERSION)'/' -e 's/--RELEASE--/'$(TODAY)'/' $(METRPMNAME)/$(METRPMNAME).spec > $(RPMBUILDROOT)/SPEC/$(METRPMNAME)-$(VERSION)-$(TODAY).spec.header; \
+	cat $(RPMBUILDROOT)/SPEC/$(METRPMNAME)-$(VERSION)-$(TODAY).spec.header $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW/headerfiles.txt > $(RPMBUILDROOT)/SPEC/$(METRPMNAME)-$(VERSION)-$(TODAY).spec; \
+#   3. make the RPM and copy it back
+	cd $(RPMBUILDROOT)/SPEC; \
+	rpmbuild -ba -vv $(METRPMNAME)-$(VERSION)-$(TODAY).spec;
+	cp $(RPMBUILDROOT)/RPMS/i386/$(METRPMNAME)-$(VERSION)-$(TODAY).i386.rpm $(VWDIR)
+	cp $(RPMBUILDROOT)/BUILD/VW-$(VERSION)/$(METRPMNAME)-$(VERSION)-$(TODAY).* $(VWDIR)
+	more $(METRPMNAME)-$(VERSION)-$(TODAY).report

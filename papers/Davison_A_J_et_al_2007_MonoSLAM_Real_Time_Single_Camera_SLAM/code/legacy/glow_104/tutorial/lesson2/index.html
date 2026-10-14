@@ -1,0 +1,338 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Lesson 2: Exploring the Mandelbrot Set
+</h2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson1/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson1/index.html">Lesson 1</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson3/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson3/index.html">Lesson 3</a>
+</td>
+</tr></table>
+</p>
+
+<p>
+<table cellpadding=3 cellspacing=5 border=6>
+<tr>
+<th>Code</th>
+<th>Reference</th>
+</tr>
+<tr>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelglow.cpp">mandelglow.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.h">mandeldata.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.cpp">mandeldata.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.h">mandelwind.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.cpp">mandelwind.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="Makefile">Makefile</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/Glow.html">class Glow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowComponent.html">class GlowComponent</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowSubwindow.html">class GlowSubwindow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowWindow.html">class GlowWindow</a>
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+This lesson introduces GLOW events, and describes how you can respond to user input via mouse clicks. We modify the Mandelbrot Set viewing program from lesson 1 to include additional capabilities, including the ability to "zoom" into the set. At the end of this lesson, you should have a grasp of GLOW's event handling capabilities and a working knowledge of how to write interactive programs using GLOW.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Resizing the window</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+First, let's address the question we left off with in lesson 1: what to do when the user resizes the window. Ideally, we'd like to detect the event, recompute the image at the new window size, and redraw the window. Fortunately, GLOW provides a mechanism through which your window classes may receive notification of events such as a window resize. When such events occur, a corresponding virtual method in class <tt>GlowWindow</tt> is called. You may override this method to perform your own task in response to the event.
+</p>
+<p>
+Let's take a look at the <tt>MandelWind</tt> class, in file <tt>mandelwind.h</tt>. Notice the new method "<tt>OnReshape()</tt>".
+</p>
+<blockquote>
+<pre>virtual void OnReshape(int width, int height);</pre>
+</blockquote>
+<p>
+This method is called whenever the window receives a "reshape event". This event is sent when the window is resized. GLOW passes the new width and height for the window to this method when it is called. Now, look at the implementation in <tt>mandelwind.cpp</tt>. We do two things here. First, we call <tt>glViewPort()</tt>, which updates the OpenGL viewport to encompass the entire new window area. Second, we call the <tt>SetSize()</tt> method on the MandelData object. This has the effect of resizing the data image, and marking it invalid so it will be recomputed. Don't worry about the setting of the variable <tt>_halfDiagonal</tt> yet; this is used by our zooming code.
+</p>
+<p>
+After executing our <tt>OnReshape()</tt> method, GLOW automatically marks the window as needing update, which has the effect of causing our <tt>OnEndPaint()</tt> method to be called. Notice that we've made some changes to this method too. Notably, we've moved the code that recalculates the data and generates the pixel image out of the constructor and into <tt>OnEndPaint()</tt>. This is because this code will have to be re-executed every time the window is resized. So just before we redraw the image, we check to see if it is still valid, and if not, we recompute it.
+</p>
+
+<p>
+<b>Exactly when is <tt>OnReshape()</tt> called?</b>
+</p>
+<p>
+The method is called in response to three types of occurrences. First, it is called once when a window is first created. You can think of this as reshaping the window from "no size" to its initial size. Second, it is called when the user resizes the window. Third, it is also called whenever you explicitly resize a window by calling the <tt>Resize()</tt> method of <tt>GlowWindow</tt>.
+</p>
+
+<p>
+<b>Why is the recompute-code moved into <tt>OnEndPaint()</tt>? Wouldn't it make more sense to put it at the end of <tt>OnReshape()</tt>?</b>
+</p>
+<p>
+That's a good question, and the answer gets into a subtlety of how GLOW reports events. If you're familiar with GLUT's event-reporting mechanism, you probably remember that it attempts to condense events down to a minimal number. For example, if a window is resized, and then resized again before the first resize can be reported, the two resizes are condensed into one event, and only the last one is reported. GLOW works in the same way. Now, this in mind, note that there are many things that can cause the data to be recalculated. So far, we've seen window resizing, but later in this lesson we'll implement zooming, which can also cause a recomputation. Suppose the window is resized, and the data is zoomed, at the same time. If we recompute in response to each event, we'll recompute twice. However, both of these occurrences will cause the window to be marked dirty, which causes <tt>OnEndPaint()</tt> to be called; but GLOW will condense these two redraw events into one, and only actually call your <tt>OnEndPaint()</tt> once. By putting off recomputation of the image until the very last minute, in <tt>OnEndPaint()</tt>, we can potentially save some redundant recalculations.
+</p>
+<p>
+This general technique is called <i>lazy evaluation</i>. You note that you need to perform some computation, but don't actually perform it until the last minute, in the hopes that maybe the need to do so will go away.
+</p>
+
+<p>
+<b>I looked at the entry for <tt>OnReshape()</tt> in the reference for class <tt>GlowWindow</tt> but didn't find much information. What's up with that?</b>
+</p>
+<p>
+That method, along with many of the methods in <tt>GlowWindow</tt>, is actually inherited from a base class. <tt>GlowWindow</tt> is a subclass of <tt>GlowSubwindow</tt>, which is itself a subclass of <tt>GlowComponent</tt>. You'll find the detailed description of <tt>OnReshape()</tt> in the <tt>GlowSubwindow</tt> reference, and the detailed description of <tt>OnEndPaint()</tt> in the <tt>GlowComponent</tt> reference. We'll learn more about subwindows and components in a later lesson. For now, just note that they're classes in a class hierarchy. In subsequent sections and subsequent lessons, we'll encounter many more such methods. The reference pages will tell you in which class the method actually originates.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.h">mandelwind.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowComponent.html">class GlowComponent</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowSubwindow.html">class GlowSubwindow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWindow.html">class GlowWindow</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Responding to mouse events</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+The real beauty of the Mandelbrot Set appears when you magnify parts of it. Let's construct a user interface for zooming in and out of the set. One simple way to do this is to use the mouse, and let the user drag out a rectangle to magnify. For simplicity, our implementation will limit these rectangles to have the same aspect ratio as the window itself, and we'll have the user drag the rectangle from center to corner. We'll also implement a similar interface to "zoom out".
+</p>
+
+<p>
+<b>About the event handling methods</b>
+</p>
+<p>
+Take another look at our class declaration in <tt>mandelwind.h</tt>. You'll see three virtual methods for handling mouse-related events: <tt>OnMouseDown()</tt>, <tt>OnMouseUp()</tt>, and <tt>OnMouseDrag()</tt>.
+</p>
+<blockquote>
+<pre>virtual void OnMouseDown(Glow::MouseButton button, int x, int y,
+    Glow::Modifiers modifiers);
+virtual void OnMouseUp(Glow::MouseButton button, int x, int y,
+    Glow::Modifiers modifiers);
+virtual void OnMouseDrag(int x, int y);</pre>
+</blockquote>
+<p>
+<tt>OnMouseDown()</tt> is called when the user presses one of the mouse buttons. GLOW passes it a constant denoting which button was pressed, the window coordinates of the button press, and a set of flags denoting any modifier keys such as shift or alt that were down when the event occurred. <tt>OnMouseUp()</tt> is called in response to a button release. <tt>OnMouseDrag()</tt> is called repeatedly when the mouse is moved while buttons are down.
+</p>
+<p>
+The button parameter is set to one of the values <tt>Glow::leftButton</tt>, <tt>Glow::middleButton</tt> or <tt>Glow::rightButton</tt>. Modifier flags that can be set are given by the masks <tt>Glow::shiftModifier</tt>, <tt>Glow::ctrlModifier</tt> and <tt>Glow::altModifier</tt>. The x and y coordinates are given in <i>window coordinates</i>. These are different from the OpenGL drawing coordinates. They start at (0,0) at the upper left of the window, and increase down and right. The bottom right pixel is denoted by (width-1,height-1), where width and height are the dimensions of the window.
+</p>
+
+<p>
+<b>Writing OnMouseDown() and OnMouseDrag()</b>
+</p>
+<p>
+Now, let's take a look at the implementation in a little more detail. First, <tt>OnMouseDown()</tt>. The first thing we do is check the value of <tt>_dragType</tt>, which is a flag that denotes the current status (zooming in, zooming out, or not dragging). We respond to a mouse-down only if we're not already dragging. Next, we make sure the button pressed is the left mouse button; we will ignore the other two mouse buttons for now. Next we check if the shift key is down. If it is, we go into zooming-out mode; if it isn't, we go into zooming-in mode. Note that the code for starting a zoom-out calls two methods, <tt>Width()</tt> and <tt>Height()</tt>. These are methods of <tt>GlowWindow</tt> that tell the current dimensions of the window.
+</p>
+<blockquote>
+<pre>...
+if (button == Glow::leftButton) {
+    if (modifiers & Glow::shiftModifier) {
+        // Zoom out
+        _xdown = Width()/2;   // Center of the window
+        _ydown = Height()/2;
+        _dragType = ZOOM_OUT_DRAG;
+    } else {
+        // Zoom in
+        _xdown = x;
+        _ydown = y;
+        _dragType = ZOOM_IN_DRAG;
+    }
+    _ComputeZoomFactor(x, y);
+    Refresh();  // Explicitly refresh
+}
+...</pre>
+</blockquote>
+<p>
+After setting the mode, <tt>OnMouseDown()</tt> calls a method to determine the initial zoom factor, and then calls a special method of <tt>GlowWindow</tt> called <tt>Refresh()</tt>. You can call this method to notify GLOW that the window needs to be redrawn. GLOW does not redraw the window immediately, but lazily marks the window as needing update. The actual redrawing will occur a short time later; at that point, GLOW will call your <tt>OnEndPaint()</tt>. Note that because GLOW is lazy about handling refresh requests, you can call <tt>Refresh()</tt> multiple times with little ill effect. GLOW, like GLUT, will condense the multiple refresh requests into just one, and call <tt>OnEndPaint()</tt> only once.
+</p>
+<p>
+<tt>OnMouseDrag()</tt> is called whenever the position of the mouse changes while one of the buttons is down. We implement this method to simply update our current value for the zoom factor based on the new mouse coordinates, and then call <tt>Refresh()</tt> to update the window. <tt>OnMouseUp()</tt> does one final computing of the zoom factor., Next, it informs the data object to zoom in or out, resets <tt>_dragType</tt> to <tt>NO_DRAG</tt>, and calls <tt>Refresh()</tt>.
+</p>
+
+<p>
+<b>A few more details</b>
+</p>
+<p>
+Now that we've implemented methods to respond to mouse events, we have two more things to do to make our zoomable Mandelbrot viewer work well. First, we should probably give some graphical feedback while the user is dragging a rectangle. We'll accomplish this by simply drawing the rectangle in gray atop the currently displayed image. Look at the end of <tt>OnEndPaint()</tt>, and you'll notice a bit of code that draws a rectangle if the user is currently dragging. Probably the only unfarmiliar part of this code is the call to the method <tt>NormalizeCoordinates()</tt>. This is a useful utility method of <tt>GlowWindow</tt> that converts window coordinates (given by the mouse events) to normalized OpenGL drawing coordinates in two dimensions, with (0,0) at the center of the window, x increasing to the right and y increasing to the top.
+</p>
+<p>
+Second, we need to inform GLOW that our window now wants to receive mouse events. We accomplish this by modifying the constructor, changing one of the parameters from <tt>Glow::noEvents</tt> to <tt>Glow::mouseEvents | Glow::dragEvents</tt>. This sets the event mask for the window, telling GLOW to report mousedown, mouseup and mousedrag events for the window.
+</p>
+<blockquote>
+<pre>MandelWind::MandelWind(MandelData* data) :
+GlowWindow("Mandelglow", GlowWindow::autoPosition, GlowWindow::autoPosition,
+    data-&gt;Width(), data-&gt;Height(), Glow::rgbBuffer | Glow::doubleBuffer,
+    Glow::mouseEvents | Glow::dragEvents)   // Receive mouse and drag events
+{ ...</pre>
+</blockquote>
+
+<p>
+<b>Why in the world did we have to set an event mask?</b>
+</p>
+<p>
+All GLOW events are reported via virtual methods, and each method does have a default implementation that simply ignores the event. From a functional point of view, we don't need the event mask. GLOW can call the virtual methods for every event that gets reported, and those that we're not interested in will fall through to the default, do-nothing event handler. However, there is some performance overhead involved with detecting and dispatching an event. The event mask, then, is a hint to GLOW to tell it which events a window is interested in receiving. GLOW uses this information internally to decide which events to listen for and dispatch to the virtual methods of the window object. More technically, the event mask describes which GLUT callbacks should be registered for a particular window.
+</p>
+<p>
+When you're writing a window class for a GLOW program, be sure to pay attention to which events you want to receive. You need to implement the corresponding virtual method, AND set the appropriate bit in the event mask. If you are debugging a window class and discover that you don't seem to be receiving certain events, the first thing you should check is that your event mask is correct. (Another important thing to check is that you've spelled the names of the virtual methods correctly; that bug gets me quite often.) The constants corresponding to bits in the event mask can be found in class <tt>Glow</tt>.
+</p>
+
+<p>
+<b>I'm confused. Exactly what does <tt>Refresh()</tt> do and when does redrawing take place?</b>
+</p>
+<p>
+GLOW operates by raising and responding to events. "Redraw this window" is just another event that can be raised in the GLOW system. When you call <tt>Refresh()</tt>, GLOW does <i>not</i> immediately redraw the window. Instead, it raises a refresh event for the window in question; this event gets stuck into the event queue for later processing. Other things that can cause a refresh event to be raised include resizing the window, moving it so parts are un-obscured, de-iconifying the window, and so forth. Later, when GLOW gets around to responding to the event, it will call the <tt>OnEndPaint()</tt> method for the window, in which you actually perform the drawing.
+</p>
+<p>
+As an example, let's consider our mouse-down handler. When the user presses the mouse button in our Mandelbrot viewer window, a mouse-down event is raised. In a short time, GLOW handles the event by calling our <tt>OnMouseDown()</tt> method. Now, while we're in this method, we call <tt>Refresh()</tt>. GLOW raises a refresh event, and inserts it into the event queue for later, but since we're still in <tt>OnMouseDown()</tt>, we're still handling the mouse-down event. (And in fact, if we now go into an infinite loop, the system will never redraw the window because it never "finishes" with the current mouse-down event.) Once we exit our mouse-down handler, GLOW resumes control and looks for the next event to handle, which may be the refresh event we raised, or it may be another event such as a window resize or a keypress. 
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.h">mandelwind.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Glow.html">class Glow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWindow.html">class GlowWindow</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Putting it together</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Here's an exercise for you. What do we need to change in the main program mandelglow.cpp to finish these modifications? The answer is... nothing! We've merely changed our window class to add some more capabilities. Our main program does not need to be changed; it still simply creates a window and then enters the GLOW main loop. We do not need to register new callbacks. GLOW handles this automatically for us, based on the information we provided in the window class.
+</p>
+<p>
+Compile and run the program. Now notice that you can resize the window, and the program will adjust the image size accordingly. Try zooming in and out, by dragging rectangles using the left mouse button (with and without the shift key down). The Mandelbrot set includes some pretty intricate structures near the edges at high magnifications.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelglow.cpp">mandelglow.cpp</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Where to go from here</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+At this point, you may want to try experimenting with different colors. Mandelbrot images can appear very beautiful when you color pixels differently according to the value computed. As an example, try a rainbow pattern: map values from 1 to 256 to colors interpolated between red and green, then values from 257 to 512 to colors interpolated between green and blue, and so forth up to 1024. You'll need to change the image computation code in <tt>MandelWind::OnEndPaint()</tt> to accomplish this. Now try zooming in towards the edge of the set. Neato! Another value that has an effect on the appearance of Mandelbrot images is the iteration threshhold, which you can set using the method <tt>MandelData::SetThreshhold()</tt>. Its default value is 1000. Smaller values result in more black; larger values result in slightly less black. The amount of time necessary for computation is generally proportional to this value. In actuality, a value of infinity will generate a perfect Mandelbrot set (but is impractical for computation!), and finite values will generate approximations.
+</p>
+<p>
+Now that you know how to respond to mouse events, you can experiment with a few of the other event types. Try this as an exercise. Modify the window class so pressing the "A" key causes the zoom to revert to its original state. (Hint: you'll need to override the method <tt>GlowWindow::OnKeyboard()</tt>, and don't forget to add keyboard events to the event mask.)
+</p>
+<p>
+In the next lesson we'll see how to add more user interface features through menus, and we'll look at GLOW's powerful generalized event reporting mechanism, through which you can define your own events.
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson1/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson1/index.html">Lesson 1</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson3/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson3/index.html">Lesson 3</a>
+</td>
+</tr></table>
+</p>
+
+
+
+
+<hr size=2>
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

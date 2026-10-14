@@ -1,0 +1,31 @@
+/** 
+ * @page VWGLPage VWGL
+ *
+ * The GL extension library provides abstract base classes for 2D and 3D displays which use
+ * openGL. It also provides real displays using GLUT and some 3D drawing commands
+ * for some lab objects:
+ *
+ * Utility
+ *
+ *     - VW::GLUTInit : Initialise GLUT before use.
+ *     - VW::GLUTLoop : Hand control over to the GLUT event loop.
+ *
+ * Displays (2D)
+ *
+ *     - VW::DisplayGLCommon : The base class for 2D displays using OpenGL.
+ *     - VW::DisplayGLUT : A VW display using only GL and GLUT.
+ *
+ * Displays (3D)
+ *
+ *     - VW::ThreeDToolGLCommon : The base class for 3DTool widgets.
+ *     - VW::ThreeDToolGLUT : A 3DTool that uses GLUT to open a window and handle events.
+ *
+ * Drawing functions
+ *
+ *     - VW::DrawFireI : Draw a Unibrain Fire-I camera
+ *     - VW::DrawVL500 : Draw a Sony VL500 camera
+ *     - VW::DrawYorick811 : Draw the Yorick 8-11 active stereo platform
+ *     - VW::DrawWeRo : Draw Walterio's Wearable Robot (mk II)
+ *     - VW::DrawGTI : Draw the GTI mobile robot
+ *
+ */

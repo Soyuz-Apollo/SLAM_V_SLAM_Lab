@@ -1,0 +1,102 @@
+@tindex Plessey
+@tindex Harris
+@tindex SIFT
+@tindex ShiTomasi
+@tindex CornerMatcher
+
+Using point (or "corner") features involves three stages. First interesting locations must be detected. Further use (grouping, matching etc) of these locations requires a characterisation of each location in terms of the surrounding image (here referred to as a Descriptor). Finally, algorithms are provided for matching these descriptors.
+
+@ifnottex 
+@noindent Sections: 
+@end ifnottex
+@menu
+* Detecting::
+* Describing::
+* Matching::
+@end menu
+
+@node Detecting, , ,PointFeatures
+@section Detecting point features
+
+There are a large number of methods for finding interesting locations in an image, and a few are provided in the core VW library. All of these work in a similar way, filling a list of CornerFeatures:
+
+@example
+   #include <iostream>
+   #include <VW/Image/imagemono.h>
+   #include <VW/Improc/plessey.h>
+   
+   int main(int argc, char* argv[])
+   @{
+      std::vector<VW::CornerFeature> locations;
+      VW::ImageMono<unsigned char> image;
+      image.ReadImage("image.jpg");
+
+      // Detect interesting locations
+      VW::Plessey(image, locations);
+
+      std::cerr << "Found " << locations.size() << " features.\n";
+
+      return 0;
+   @}
+@end example
+
+The methods are as follows:
+@itemize
+@item @strong{Plessey} the standard algorithm published by Harris and Stephens of the Plessey Corporation. This algorithm looks for locations where the autocorellation function is most highly peaked --- ie which are dissimilar to thier surroundings and are well localised.
+@item @strong{Shi & Tomasi} the algorithm published by Shi and Tomasi is virtually identical to Plessey except in some implementational details (mostly to do with the correlation patch). However, these details make an optimised implementation slightly faster than the Plessey implementation.
+@item @strong{DOG} the Difference-Of-Gaussian (DOG) detector looks for maxima and minima in the difference between two smoothed versions of an image. This corresponds roughly to the Laplacian of a Gaussian and hence finds blobs of a particular size. For this reason it is usually used on an image pyramid so that a variety of blobs can be detected.
+@end itemize
+
+
+@node Describing, , ,PointFeatures
+@section Describing locations
+
+Getting descriptors for locations can be done in a number of ways according to the computational budget available. For those with CPU cycles to burn, Lowe's SIFT descriptor has proved itself the current king of descriptors. More economical but sharing many of the advantages of SIFT are weighted oriented patches of the image. Simplest of all is to simply take a square patch of pixels around the feature. In each case the usage is similar:
+
+@example
+   // Get patch descriptors
+   std::vector<VW::PatchFeature> patch_features;
+   VW::GetPatchDescriptor(locations, image_pyramid, patch_features);  
+@end example
+
+At present only two descriptors have been implemented:
+@itemize
+@item @strong{SIFT} Lowe's Scale-Invariant-Feature-Transform (SIFT) descriptor characterises the image around the feature in terms of histograms of the gradient orientations. Since such histograms are extremely sensitive to rotation of the feature the dominant overall orientation(s) of the feature are first measured and subtracted.
+@item @strong{PatchFeature} at its most basic (and fastest) a patch of the raw image is captured. If CPU time is less important, matching performance is improved if the patches are weighted accoring to the distance from the centre and even corrected according to the dominant orientation(s) (as for SIFT). A compromise between speed and matching performance can therefore be chosen.
+@end itemize
+
+
+Below is a complete example of detecting and describing features.
+
+@example
+   #include <iostream>
+   #include <VW/Image/imagemono.h>
+   #include <VW/Improc/plessey.h>
+   #include <VW/Improc/getpatchdescriptor.h>
+   
+   int main(int argc, char* argv[])
+   @{
+     std::vector<VW::CornerFeature> locations;
+     std::vector<VW::PatchFeature> features;
+
+      VW::ImageMono<unsigned char> image;
+      image.ReadImage("image.jpg");
+
+      // Detect interesting locations
+      VW::Plessey(image, locations);
+
+      // Get descriptors for each locations
+      VW::GetPatchDescriptor(locations, image, features);
+
+      std::cerr << "Found " << features.size() << " features.\n";
+
+      return 0;
+   @}
+@end example
+
+
+
+@node Matching, , ,PointFeatures
+@section Matching descriptors
+
+

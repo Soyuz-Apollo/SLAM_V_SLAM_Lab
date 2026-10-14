@@ -1,0 +1,70 @@
+This file describes major changes between VW versions. It only
+describes major or wide-ranging changes.
+
+
+
+Changes from Version VW32
+-------------------------
+
+20/01/2003 bjt
+Fix recreation of textures in GL widgets - textures are now stored and
+overwritten as necessary. This reduces image drawing time by about 70%.
+
+??/01/2003 bjt/ndm/ajd
+New object for loading Alias Wavefront (AWF) object files.
+
+04/12/2003 bjt
+Renamed VNL/algo to VNL/Algo to match all other VW directories (all Dirs 
+are mixed case, and files lower case).
+
+
+20/11/2003 bjt
+Added InterfaceGL code for building simple interfaces in GL only. At the 
+moment there are threading issues with using a sequencer at the same
+time, and this may prove hard to debug.
+
+
+
+14/10/2003 bjt
+Changed structure of VWGL directory so that it matches the other GFX
+libraries - ie with DisplayGL and InterfaceGL sections. At the same
+time I have finally got round to making the ThreeDTool names match the
+format used for all the other displays (ie those that open windows are
+just called ThreeDToolXXX and those that must be embedded as a widget
+as ThreeDToolXXXWidget).
+
+Main thing is to change includes of
+  #include <VW/gl.h>
+to
+  #include <VW/displaygl.h>
+
+
+
+
+09/10/2003 bjt
+Dependency on SigC for VWCore removed, replaced by a local
+VWEvents header courtesy of KRC. For sequencers the syntax has now
+changed from:
+   my_sequencer.NewFrameEvent.connect(SigC::slot(&myfunc));
+to:
+   my_sequencer.NewFrameEvent.Attach(&myfunc);
+
+For displays the change is slightly bigger, where eg.
+   my_display.GetClickEvent()->connect(SigC::slot(&myfunc));
+is now:
+   my_display.ClickEvent.Attach(&myfunc);
+
+This makes things a bit more consistent between displays and sequencers. Since only GTK now
+requires SigC, most makefiles are simplified. For GTK displays you have
+the choice of VWEvents::Event* or SigC::signal* so you can program a
+GTK interface using just SigC if you wish.
+
+The other major change is that for connecting class member functions
+to a VWEvents::Event* you need to inherit from VWEvents::EventHandler
+instead of SigC::Object (but the purpose is the same). Members are
+connected in a similar manner to the SigC way of things:
+   my_display.ClickEvent.Attach(&this, &MyApp::ClickFunc);
+
+Note that unlike SigC, only one user func can be attached to an event,
+and because of this it is possible for the return value (if any) to
+mean something.

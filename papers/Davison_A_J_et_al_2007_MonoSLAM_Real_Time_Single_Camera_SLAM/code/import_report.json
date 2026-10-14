@@ -1,0 +1,54 @@
+{
+  "source_directory": "/Users/m/Desktop/SLAM_V_SLAM/monoslam_code",
+  "snapshot_type": "working_tree_without_git_history",
+  "legacy": {
+    "path": "legacy",
+    "kind": "original_legacy_code_with_local_build_changes",
+    "upstream_url": "https://www.doc.ic.ac.uk/~ajd/Scene/",
+    "base_commit": null,
+    "license_status": "review_required"
+  },
+  "implementations": [
+    {
+      "path": "github_marcromani_MonoSLAM",
+      "upstream_url": "https://github.com/marcromani/MonoSLAM",
+      "kind": "third_party",
+      "base_commit": "e622c1063213313b6df9264830c16b8cf33b8f8f",
+      "local_changes": [
+        "M .gitignore",
+        " M Calibration/Makefile",
+        " M Calibration/calibration.cpp",
+        " M MonoSLAM/Makefile",
+        " M MonoSLAM/camera.cpp",
+        " M MonoSLAM/camera.hpp",
+        " M MonoSLAM/feature.cpp",
+        " M MonoSLAM/feature.hpp",
+        " M MonoSLAM/main.cpp",
+        " M MonoSLAM/map.cpp",
+        " M MonoSLAM/map.hpp",
+        " M MonoSLAM/quaternion.cpp",
+        " M MonoSLAM/quaternion.hpp",
+        " M MonoSLAM/util.cpp",
+        " M MonoSLAM/util.hpp",
+        "?? CLion_setup_ru.md",
+        "?? CMakeLists.txt",
+        "?? CMakePresets.json"
+      ]
+    },
+    {
+      "path": "github_rrg-polito_mono-slam",
+      "upstream_url": "https://github.com/rrg-polito/mono-slam",
+      "kind": "third_party",
+      "base_commit": "9fdb300914d5ce3f99d1b8085fab3ce4499e9873",
+      "local_changes": []
+    }
+  ],
+  "build_verified_after_import": false,
+  "excluded": [
+    "nested .git",
+    "build outputs",
+    "raw datasets",
+    "reference PDFs",
+    "symlinks"
+  ]
+}

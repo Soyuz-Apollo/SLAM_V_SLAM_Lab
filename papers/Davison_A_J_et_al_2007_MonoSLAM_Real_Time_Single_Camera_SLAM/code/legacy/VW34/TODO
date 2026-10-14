@@ -1,0 +1,14 @@
+VW "To-Do" list, 12/8/2005
+
+o	properly test new SequencerMovie that uses mplayer;
+	remove old moview player based on hacked xanim.
+
+o	create new SequencerMovie based on gstreamer
+
+o	upgrade firewire stuff to latest version of libdc1394 (maintaining backward compatibilty via configure script), and fix flakey on/off part of software by comparing with current versions of coriander.
+
+o	test glute for speed and try to identify why interface seems so slow
+
+o	create VWGTK2
+
+	

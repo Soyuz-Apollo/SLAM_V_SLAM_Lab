@@ -1,0 +1,572 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Lesson 8: Writing Your Own Widgets
+</h2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson7/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson7/index.html">Lesson 7</a>
+</td>
+</tr></table>
+</p>
+
+<p>
+<table cellpadding=3 cellspacing=5 border=6>
+<tr>
+<th>Code</th>
+<th>Reference</th>
+</tr>
+<tr>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="ballwidget.h">ballwidget.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="ballwidget.cpp">ballwidget.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="glowmech.cpp">glowmech.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mechcontrols.h">mechcontrols.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mechcontrols.cpp">mechcontrols.cpp</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/Glow.html">class Glow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowQuickPanelWidget.html">class GlowQuickPanelWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowViewManipulator.html">class GlowViewManipulator</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowWidget.html">class GlowWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowWidgetParams.html">class GlowWidgetParams</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/Quatf.html">class Quatf</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/Vec3f.html">class Vec3f</a>
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+One of GLOW's strengths is that it gives you the ability to write your own custom widgets and integrate them directly into the GLOW system. This lesson will describe the process of writing widgets. We will extend the control panel we wrote for lesson 6 to include facilities for controlling the viewpoint and light source location. To do this, we will write a simple "trackball" widget using the view manipulator we learned about in lesson 5. We'll then use two of these trackballs to control the view and lighting parameters. In the process, we'll also look briefly at the vector algebra classes provided by GLOW.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Writing a widget</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<img src="balls.jpg" border=0 align=right hspace=10 vspace=10>
+The first step in writing a widget is deciding how the widget will behave: what it will look like, how it will respond to events, and how it will notify other program components of changes in its state. For the purposes of this lesson, we'll make our trackball widget fairly simple. It should be recognizable as a ball, it should rotate when the mouse is dragged over it, and it should change the viewpoint of the scene as it is rotated. To the right is an image of the widget we'll write. For now, we'll just use the GLUT calls to draw a wireframe ball; however, you can change it later to draw a shaded ball if you wish.
+</p>
+
+<p>
+<b>Declaring a widget class</b>
+</p>
+<p>
+Now let's take a look at <tt>ballwidget.h</tt>. Our widget class, <tt>BallWidget</tt>, must subclass <tt>GlowWidget</tt>, which is defined in <tt>glowWidget.h</tt>. Alternately, if you're refining an existing widget, you can subclass that widget directly. Widgets are similar to subwindows in that they inherit from <tt>GlowComponent</tt>, and they recognize most of the same concepts as subwindows such as hierarchy, redraw, event reporting, and screen position and size. However, widgets are not subwindows. They aren't implemented using GLUT subwindows, and as such they do not have their own OpenGL context, nor do they receive window manager events such as reshape and visibility events. The names of the methods you implement are also different for widgets.
+</p>
+<p>
+When you subclass <tt>GlowWidget</tt>, you need to provide a constructor/destructor, an <tt>OnWidgetPaint()</tt> method for drawing, an <tt>OnAutoPack()</tt> method for automatic sizing and positioning of the widget, and widget event handlers such as <tt>OnWidgetMouseDown()</tt>. Our <tt>BallWidget</tt> class includes those methods, plus several others to allow reporting of widget events and other manipulation.
+</p>
+
+<p>
+<b>The widget constructor</b>
+</p>
+<p>
+Now let's jump over to <tt>ballwidget.cpp</tt> to see some of the basic widget operations. First, let's look at the constructor. The first step is to initialize the widget base class by filling out the parameter block and calling <tt>GlowWidget::Init()</tt>:
+</p>
+<blockquote>
+<pre>GlowWidgetParams params;
+params.x = x;
+params.y = y;
+params.width = params.height = width;
+GlowWidget::Init(parent-&gt;Root(), parent, params);</pre>
+</blockquote>
+<p>
+Next, we'll set up the widget. We'll implement the rotating ball by creating a component to draw the ball, and attaching it to a <tt>GlowViewManipulator</tt>.
+</p>
+<blockquote>
+<pre>_manip = new GlowViewManipulator(this, GlowViewManipulatorParams::defaults);
+new DrawWireSphere(_manip);</pre>
+</blockquote>
+<p>
+You can see the class <tt>DrawWireSphere</tt> just above the <tt>BallWidget</tt> constructor. It's a simple component that draws a wireframe sphere. The last line in the <tt>BallWidget</tt> constructor is an important one for setting up event handling:
+</p>
+<blockquote>
+<pre>RegisterMouseEvents();</pre>
+</blockquote>
+<p>
+That line informs the widget system that our widget wants to receive mouse events. There is also a similar call <tt>RegisterKeyboardEvents()</tt> for registering to receive keyboard events (actually, technically, for becoming eligible to receive the keyboard focus). You should call the appropriate <tt>Register...</tt> methods in your widget constructor. There are also corresponding <tt>Unregister...</tt> methods, but you do not normally need to call them explicitly unless your widget, for one reason or another, needs to make itself ineligible to receive events for a time. Widgets are automatically unregistered when they are deleted, made inactive or made invisible, and reregistered when they are reactivated and made visible. Widget event registration is analagous to the event mask setting for subwindows.
+</p>
+
+<p>
+<b>Drawing the widget</b>
+</p>
+<p>
+Now that we've set up our widget, let's look at the drawing mechanism. You set up your widget drawing by overriding the method <tt>OnWidgetPaint()</tt>. At the time of the call, the viewport is set to the widget's rectangle in the frame buffer, so you don't have to worry about positioning the widget. Most widgets can just be drawn during this method.
+</p>
+<p>
+In our case, however, we have a slightly more complicated situation. We have attached to our widget a view manipulator and a component that draws the wireframe sphere we use for our trackball. So what do we put in <tt>OnWidgetPaint()</tt>. Well, to make the widget look good, we're going to want the wireframe ball drawn on a black background. Since the normal widget background is light gray, we'll have <tt>OnWidgetPaint()</tt> clear the widget's rectangle to black. 
+</p>
+<blockquote>
+<pre>void BallWidget::OnWidgetPaint()
+{
+    ::glColor3ub(0, 0, 0);
+    ::glBegin(GL_QUADS);
+    ::glVertex2f(-1.0f, -1.0f);
+    ::glVertex2f(1.0f, -1.0f);
+    ::glVertex2f(1.0f, 1.0f);
+    ::glVertex2f(-1.0f, 1.0f);
+    ::glEnd();
+}</pre>
+</blockquote>
+<p>
+It turns out that <tt>OnWidgetPaint()</tt> gets called during <tt>GlowComponent::OnBeginPaint()</tt>, and therefore it is called before the children are drawn. That is good for our situation because we want the rectangle cleared to black before the trackball is drawn. However, it also makes for another useful property. Certain widgets, such as the <tt>GlowPanelWidget</tt>, are intended to contain other widgets. That is implemented by making the contained widgets children of the containing widget. Therefore, the containing (panel) widget is drawn first, giving the background, and the contained widgets are drawn on top.
+</p>
+<p>
+One other feature of widget drawing that you should be aware of is clipping. Widgets may choose to "clip" drawing to their borders, which causes the OpenGL scissor rectangle to be intersected with the widget's rectangle prior to drawing. (The scissor is restored at the end of the drawing process.) An upshot of this is that children of the widget are "clipped" to the widget's rectangle, which may be useful for widgets that visually contain other widgets, such as panels. Normally, when you write a widget, you should decide whether it should clip; if so, set the <tt>clipping</tt> field of <tt>GlowWidgetParams</tt> to <tt>true</tt> when you initialize the widget in your constructor.
+</p>
+
+<p>
+<b>Handling events in widgets</b>
+</p>
+<p>
+To handle events in a widget, override the methods <tt>OnWidgetMouseDown()</tt>, <tt>OnWidgetMouseUp()</tt>, <tt>OnWidgetMouseDrag()</tt>, and <tt>OnWidgetKeyboard()</tt>. Those methods are analagous to the similar methods of <tt>GlowSubwindow</tt>. Our implementations of the mouse event handlers for <tt>BallWidget</tt> are pretty similar to the view manipulator window we wrote in lesson 5, except that here we'll only allow rotation. Note that <tt>GlowWidget</tt> also provides a <tt>NormalizeCoordinates()</tt> method; it normalizes the coordinates within the widget's rectangle.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="ballwidget.h">ballwidget.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="ballwidget.cpp">ballwidget.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowViewManipulator.html">class GlowViewManipulator</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWidget.html">class GlowWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWidgetParams.html">class GlowWidgetParams</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Widget events</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Another decision you'll need to make when writing a widget is how to report widget events. For example, if you're writing a pushbutton, you need to notify the client program when the button is pressed. For our trackball widget, we'll use the same mechanism used by GLOW's provided widgets: we'll allow the widget to be bound to event receivers, and we'll provide methods that can be overridden.
+</p>
+
+<p>
+<b>Inheritance-based notification</b>
+</p>
+<p>
+First, we'll implement the inheritance-based notification. In the file <tt>ballwidget.h</tt>, there are two virtual methods:
+</p>
+<blockquote>
+<pre>virtual void OnDragged(Glow::MouseButton button, Glow::Modifiers modifiers);
+virtual void OnReleased(Glow::MouseButton button, Glow::Modifiers modifiers);</pre>
+</blockquote>
+<p>
+<tt>OnDragged()</tt> will be called repeatedly while the trackball is being dragged, and <tt>OnReleased()</tt> will be called once when the trackball is released.
+</p>
+<p>
+To see how we implement the event notification in <tt>ballwidget.cpp</tt>, let's take another look at the event handlers. <tt>BallWidget::OnWidgetMouseDown()</tt> contains two lines at the end to save the button and keyboard modifiers that were used. Then, in <tt>OnWidgetMouseDrag()</tt>, we call our notification method, passing it the mouse button and modifiers we saved:
+</p>
+<blockquote>
+<pre>OnDragged(_button, _modifiers);</pre>
+</blockquote>
+<p>
+Similarly, in <tt>OnWidgetMouseUp()</tt>, we call:
+</p>
+<blockquote>
+<pre>OnReleased(_button, _modifiers);</pre>
+</blockquote>
+<p>
+There, that wasn't so hard. Now a subclass of <tt>BallWidget</tt> can override the methods to receive events.
+</p>
+
+<p>
+<b>Sender-receiver notification</b>
+</p>
+<p>
+Now, let's take a look at our default implementations of <tt>OnDragged()</tt> and <tt>OnReleased()</tt>.
+</p>
+<blockquote>
+<pre>void BallWidget::OnDragged(Glow::MouseButton button, Glow::Modifiers modifiers)
+{
+    GLOW_DEBUGSCOPE("BallWidget::OnDragged");
+    BallMessage message;
+    message.widget = this;
+    message.rotation = _manip-&gt;GetRotation();
+    message.released = false;
+    message.mouseButton = button;
+    message.modifiers = modifiers;
+    _sender.Send(message);
+}</pre>
+</blockquote>
+<p>
+Here in <tt>OnDragged()</tt>, we create a message structure of type <tt>BallMessage</tt>, and fill it out with information on the trackball-dragged event. Note that we get the current rotation value, in the form of a quaternion, by calling <tt>GlowViewManipulator::GetRotation()</tt>. Quaternions, which are implemented as type <tt>Quatf</tt> in GLOW, are a useful method of representing 3D rotations. We'll see later how we can extract useful information out of the quaternion. For now, all we do is construct the event message, and hand it to a Sender, which broadcasts it to an connected event receivers. The <tt>OnReleased()</tt> method is written similarly, except it sets the <tt>released</tt> field of the message to true.
+</p>
+<p>
+We also need a way for a client program to bind the widget to receivers. To that end, we provide a method <tt>BallWidget::Notifier()</tt>, returning a reference to the sender object, which can be bound to receivers.
+</p>
+<blockquote>
+<pre>inline TSender&lt;const BallMessage&&gt;& BallWidget::Notifier()
+{
+	return _sender;
+}</pre>
+</blockquote>
+<p>
+Now we can bind this widget to a receiver. For example:
+</p>
+<blockquote>
+<pre>myBallWidget->Notifier().Bind(myReceiver);</pre>
+</blockquote>
+
+<p>
+<b>Standards for reporting events</b>
+</p>
+<p>
+If you're writing a widget that will be used by other developers, I recommend following a few guidelines for API consistency with GLOW's provided widgets.
+</p>
+<ul>
+<li>
+Provide both the above ways of reporting widget events: virtual method override and sender-receiver. If only one type of event is to be report (as in a pushbutton press), name your virtual method "<tt>OnHit()</tt>"; otherwise, name the two methods according to the type of event as we have done for <tt>BallWidget</tt>.
+</li>
+<li>
+Send only one type of message unless the different event types would almost always be handled differently. For example, in our case, we had two types of events (drag and release), but sent only one message with a field distinguishing the two because most applications would treat them the same. Name the widget method that returns a reference to the message sender "<tt>Notifier()</tt>" if there is only one type of event; otherwise name them according to the type of event (e.g. "<tt>ReleaseNotifier()</tt>).
+</li>
+<li>
+For the message type itself, provide a member named "<tt>WidgetType* widget</tt>" containing a pointer to the widget that raised the event. If the event is mouse-related, provide members "<tt>Glow::MouseButton mouseButton</tt>" and "<tt>Glow::Modifiers modifiers</tt>" giving information on the mouse button pressed and the modifiers that were down at the time. If the event is keyboard-related, provide members "<tt>Glow::KeyCode keycode</tt>" and "<tt>Glow::Modifiers modifiers</tt>" giving information on the key pressed and the modifiers that were down at the time.
+</li>
+</ul>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="ballwidget.h">ballwidget.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="ballwidget.cpp">ballwidget.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Glow.html">class Glow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWidget.html">class GlowWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Quatf.html">class Quatf</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Autopacking</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+One of the features of GLOW's widget system is its ability to automatically arrange widgets in a window, using an interface such as QuickPalette. Even widgets that you write may participate in automatic arrangement. This means, however, that each widget needs to specify how it wants to be arranged. You do this by overriding the method <tt>OnAutoPack()</tt>, which has the signature:
+</p>
+<blockquote>
+<pre>virtual GlowWidget::AutoPackError OnAutoPack(int hSize, int vSize,
+    GlowWidget::AutoPackOptions hOption, GlowWidget::AutoPackOptions vOption,
+    int& leftMargin, int& rightMargin, int& topMargin, int& bottomMargin)</pre>
+</blockquote>
+
+<p>
+<b>About the OnAutoPack method</b>
+</p>
+<p>
+The <tt>OnAutoPack()</tt> method is called during autopacking to ask a widget to resize itself according to its own preferences and the constraints given as parameters. The vertical and horizontal constraints are specified separately in the parameters <tt>hSize</tt> and <tt>hOption</tt>, and <tt>vSize</tt> and <tt>vOption</tt>, respectively. The widget should attempt to resize itself if it can. If the given constraints are unacceptable to the widget, it should return an error code, either <tt>hAutoPackError</tt> or <tt>vAutoPackError</tt>. We'll look at the margin parameters later.
+</p>
+<p>
+There are four values that can be specified as the packing option: <tt>GlowWidget::noReshape</tt>, <tt>GlowWidget::preferredSize</tt>, <tt>GlowWidget::expandPreferredSize</tt> and <tt>GlowWidget::forcedSize</tt>.
+</p>
+<p>
+If <tt>noReshape</tt> is given, the widget should not change its size in that direction. The widget may ignore the value given in the size parameter.
+</p>
+<p>
+If <tt>preferredSize</tt> is given, the widget should choose its favorite size and reshape itself, subject to the constraint that the size should not exceed the value given in the size parameter. For example, consider a widget that prefers to be 100 pixels wide, but can tolerate a width of as little as 80. If a large value such as 120 is given in the size constraint, the widget should resize itself to its ideal size of 100 pixels. If the constraint is 90, which is smaller than ideal but still tolerable, the widget should go ahead and resize itself to 90. If, however, the constraint is 70, which is too small, the widget should return an error from <tt>OnAutoPack()</tt>. If the special value <tt>GlowWidget::unspecifiedSize</tt> is passed in the size parameter, the widget should treat the size as unconstrained, and simply choose its ideal size.
+</p>
+<p>
+The <tt>expandPreferredSize</tt> option is similar to <tt>preferredSize</tt>, but with the additional request that the widget expand its size to fill the given constraint. The expansion is only a request; a widget may choose to honor it or not. For example, a pushbutton would probably honor the request, because it is okay visually for it to expand its size; however, an icon or other fixed-size object may choose to deny the request. If the <tt>expandPreferredSize</tt> option is given, the size will constraint will never take the value <tt>GlowWidget::unspecifiedSize</tt>.
+</p>
+<p>
+The <tt>forcedSize</tt> option demands that a widget resize itself to the given size parameter. A widget should resize itself to satisfy the constraint, or return an error if it can't.
+</p>
+
+<p>
+<b>Autopacking the trackball</b>
+</p>
+<p>
+As an example, let's look at our trackball widget. We'll say the widget has a preferred size of 100 pixels, and a minimum tolerable size of 20 pixels. And just to make things interesting, let's thrown in an additional constraint that the widget must be square.
+</p>
+<p>
+First, let's make our life easier by reducing the number of cases we have to look at. The <tt>noReshape</tt> option is similar to <tt>forcedSize</tt> with the size set to the current size. Therefore, let's:
+</p>
+<blockquote>
+<pre>if (hOption == noReshape) {
+    hOption = forcedSize;
+    hSize = Width();
+}
+if (vOption == noReshape) {
+    vOption = forcedSize;
+    vSize = Height();
+}</pre>
+</blockquote>
+<p>
+Now, let's handle the <tt>forcedSize</tt> case. First, we need to make sure the squareness constraint is upheld, so if the two dimensions are being forced to different sizes, we fail:
+</p>
+<blockquote>
+<pre>if (hOption == forcedSize && vOption == forcedSize && hSize != vSize) {
+    return hAutoPackError;
+}</pre>
+</blockquote>
+<p>
+Now, let's handle the forced size cases. We'll store the newly calculated sizes in the variables <tt>hnew</tt> and <tt>vnew</tt>. In both cases, we'll also test the forced size to make sure it isn't too small.
+</p>
+<blockquote>
+<pre>if (hOption == forcedSize) {
+    if (hSize &lt; 20) {
+        return hAutoPackError;
+    }
+    hnew = hSize;
+}
+if (vOption == forcedSize) {
+    if (vSize &lt; 20) {
+        return vAutoPackError;
+    }
+   vnew = vSize;
+}</pre>
+</blockquote>
+<p>
+Now we'll handle the <tt>preferredSize</tt> and <tt>expandPreferredSize</tt> cases: first horizontal and then vertical. We'll look at the horizontal case; the vertical looks pretty much the same. The first thing we do is fail if the size constraint given is too small.
+</p>
+<blockquote>
+<pre>if (hSize != unspecifiedSize && hSize &lt; 20) {
+    return hAutoPackError;
+}</pre>
+</blockquote>
+<p>
+Next, we check to see if the other dimension (vertical) was forced to a particular size. If so, we try to force to the same size to maintain squareness. If, however, the forced vertical size doesn't comply with the horizontal constraint, we need to fail. Hence:
+</p>
+<blockquote>
+<pre>if (vOption == forcedSize) {
+    if (hSize != unspecifiedSize && hSize &lt; vnew) {
+        return hAutoPackError;
+    }
+    hnew = vnew;
+}</pre>
+</blockquote>
+<p>
+Otherwise, we'll just go ahead and find our preferred size. If we're given <tt>expandPreferredSize</tt>, we'll honor the expansion request and use the given size parameter as our size; otherwise, we'll go as large as we can up to 100 pixels.
+</p>
+<blockquote>
+<pre>else {
+    if (hOption == expandPreferredSize || (hSize != unspecifiedSize && hSize &lt;= 100)) {
+        hnew = hSize;
+    } else {
+        hnew = 100;
+    }
+}</pre>
+</blockquote>
+<p>
+We then do the same thing for the vertical. At the end, we need to handle one more case to ensure squareness. If both horizontal and vertical were constrained by <tt>preferredSize</tt> or <tt>expandPreferredSize</tt>, then they may have been set to different sizes. In that case, we set both of them to the smaller value:
+</p>
+<blockquote>
+<pre>if (hnew != vnew) {
+    hnew = vnew = min(hnew, vnew);
+}</pre>
+</blockquote>
+<p>
+Finally, we'll resize the widget and report success:
+</p>
+<blockquote>
+<pre>Reshape(hnew, vnew);
+return noAutoPackError;</pre>
+</blockquote>
+
+<p>
+<b>Margins</b>
+</p>
+<p>
+The widget should also set the margin parameters to the margins that the widget left around itself when resizing. Normally, these should simply be set to zero. However, certain widgets may want to leave space around itself when packing. For example, a labeled popup menu widget will need to leave space for the label (which is not included in the widget's rectangle). If such a widget is asked to fill 200 pixels horizontally, but needs 50 pixels on the left for its label, it should resize itself to 150 pixels, and pass 50 back as the <tt>leftMargin</tt>. That lets GLOW know that, even though the widget has set its rectangle to 150 pixels in width, it still expects to own 50 additional pixels of space on its left. If you don't explicitly set the margin parameters, GLOW will assume you intend for them to be set to 0.
+</p>
+<p>
+Autopacking can be rather complicated if your widget wants to maintain strange invariants like squareness. In the simple cases, however, writing an <tt>OnAutoPack()</tt> method is pretty straightforward. For more examples, I suggest looking at the autopacking for <tt>GlowPushButtonWidget</tt> and <tt>GlowPanelWidget</tt>. The default method provided in the base class <tt>GlowWidget</tt> attempts to force the widget to remain the same size, so if the current size doesn't agree with the given constraints, it will return an error. You can stay with the default method if your widget wants to remain a single fixed size.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="ballwidget.h">ballwidget.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="ballwidget.cpp">ballwidget.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWidget.html">class GlowWidget</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Putting it together</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<b>Adding our new widget to the widget palette</b>
+</p>
+<p>
+Now that we've written our trackball widget, let's integrate it into our glowmech program. First, we'll modify the <tt>MechControls</tt> constructor in <tt>mechcontrols.cpp</tt> to add two <tt>BallWidget</tt> widgets:
+</p>
+<blockquote>
+<pre>GlowQuickPanelWidget* panel2 = panel-&gt;AddArrangingPanel(GlowQuickPanelWidget::horizontal);
+GlowQuickPanelWidget* panel3 = panel2-&gt;AddArrangingPanel(GlowQuickPanelWidget::vertical);
+_viewBall = new BallWidget(panel3);
+_viewBall-&gt;Notifier().Bind(this);
+panel3-&gt;AddLabel("View");
+panel3 = panel2-&gt;AddArrangingPanel(GlowQuickPanelWidget::vertical);
+_lightBall = new BallWidget(panel3);
+_lightBall-&gt;Notifier().Bind(this);
+panel3-&gt;AddLabel("Light");</pre>
+</blockquote>
+<p>
+Several things to notice in the above code. First of all, we use several layers of arranging panels to get the arrangement we want: the trackballs horizontal, each with a label beneath it. Also, notice that the widgets integrate directly into the QuickPalette's arrangement! There are no special methods in the QuickPalette API for adding our new widget objects, but all we need to do is create the widget with a <tt>GlowQuickPanelWidget</tt> as the parent, and the widget will be automatically arranged just like any other widget. You can do this with any widget you create: just write a suitable <tt>OnAutoPack()</tt> method for the widget, and the QuickPalette will know how to arrange it automatically.
+</p>
+
+<p>
+<b>Responding to messages from the trackball</b>
+</p>
+<p>
+Also, we've bound the two widgets to our <tt>MechControls</tt> object. If you notice in <tt>mechcontrols.h</tt>, the <tt>MechControls</tt> class now inherits from <tt>BallReceiver</tt> and can receive messages from our <tt>BallWidget</tt>. Let's take a quick glance at the receiver method in <tt>mechcontrols.cpp</tt>:
+</p>
+<blockquote>
+<pre>void MechControls::OnMessage(const BallMessage& message)</pre>
+</blockquote>
+<p>
+The contents of the message handler aren't terribly important. We simply take the quaternion, find an equivalent representation in latitude and longitude (the coordinates used by glutmech), set the appropriate glutmech parameters, and redraw the window. Several of GLOW's provided linear algebra classes are used: 3-vectors and quaternions. For example:
+</p>
+<blockquote>
+<pre>Vec3f vec = message.rotation * Vec3f(0, 0, 1);</pre>
+</blockquote>
+<p>
+Takes the quaternion <tt>message.rotation</tt>, applies it to the vector (0,0,1), and stores the result in the vector <tt>vec</tt>. Later, we extract the x, y and z components of the result vector separately. The vector algebra classes provide a full complement of operators, including the ability, as shown here, to apply a transform to a vector simply by multiplying.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mechcontrols.h">mechcontrols.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mechcontrols.cpp">mechcontrols.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowQuickPanelWidget.html">class GlowQuickPanelWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Quatf.html">class Quatf</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Vec3f.html">class Vec3f</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Where to go from here</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+You now know the basics of writing a widget! If you'd like to get more experience, try improving on the <tt>BallWidget</tt> class. For example, you could make it look a little nicer than the wireframe ball by rendering a shiny, shaded ball instead. You could also make a more flexible constructor using a parameter block API similar to the one used by the provided GLOW widgets.
+</p>
+<p>
+You can also glean ideas from the implementations of the other GLOW widgets. One of particular interest is <tt>GlowMenuButtonWidget</tt>, which actually embeds a subwindow in the widget. This is done because we want the widget to respond to mouse clicks by popping up a menu, a capability that is only provided with subwindows. If you want to use this technique, make sure the subwindow inherits from <tt>GlowSubwindowInWidget</tt> rather than <tt>GlowSubwindow</tt>. <tt>GlowSubwindowInWidget</tt> is a special subclass of <tt>GlowSubwindow</tt> that ensures keyboard events still get reported properly to the widget root.
+</p>
+<p>
+You'll also notice that several of GLOW's widgets can have labels attached to them. For example, <tt>GlowPopupMenuWidget</tt> may have an attached label. GLOW implements these widgets by actually attaching a <tt>GlowLabelWidget</tt> as a child widget of the popup menu widget. If you want to implement a similar labeled widget, you can use GLOW's implementations as a guide. Note that labeled widgets inherit from <tt>GlowWidgetLabelHelper</tt> in addition to <tt>GlowWidget</tt>.
+</p>
+<p>
+If you want to explore the vector algebra classes a little more, here's a simple exercise. Notice that the latitude/longitude rotation specification used by glutmech only provides two of the three rotational degrees of freedom. You can tell because it is not possible to rotate the camera. Since the arcball allows you to manipulate all the degrees of freedom, try modifying glowmech to do the right thing with the viewpoint trackball. Hint: the <tt>Quatf</tt> class allows you to extract the actual rotation axis and angle that the quaternion corresponds to. And you WILL need to modify <tt>glowmech.cpp</tt>.
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson7/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson7/index.html">Lesson 7</a>
+</td>
+</tr></table>
+</p>
+
+
+<hr size=2>
+
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

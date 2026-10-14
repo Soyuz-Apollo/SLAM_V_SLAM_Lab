@@ -1,0 +1,18 @@
+/**
+ * @defgroup CoreGraphics
+ * @brief Functions and classes for drawing things on the screen or into images.
+ *
+ *
+ */
+/**
+ * @defgroup Displays
+ * @brief Classes that provide a canvas on which images and other (2D) things can be drawn.
+ *
+ *
+ */
+/**
+ * @defgroup UserInterface
+ * @brief Widget classes that provide interfaces (controls) for various VW objects.
+ *
+ *
+ */

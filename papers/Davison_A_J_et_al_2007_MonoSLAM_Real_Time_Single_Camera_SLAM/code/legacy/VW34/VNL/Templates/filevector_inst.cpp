@@ -1,0 +1,5 @@
+#include <VNL/filevector.tpp>
+
+VNL_FILE_VECTOR_INSTANTIATE(float);
+VNL_FILE_VECTOR_INSTANTIATE(double);
+VNL_FILE_VECTOR_INSTANTIATE(long double);

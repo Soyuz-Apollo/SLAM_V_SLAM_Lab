@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VNL", "VNL.vcproj", "{F53B6453-D088-43CD-BD5C-6535E0CB639F}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{F53B6453-D088-43CD-BD5C-6535E0CB639F}.Debug.ActiveCfg = Debug|Win32
+		{F53B6453-D088-43CD-BD5C-6535E0CB639F}.Debug.Build.0 = Debug|Win32
+		{F53B6453-D088-43CD-BD5C-6535E0CB639F}.Release.ActiveCfg = Release|Win32
+		{F53B6453-D088-43CD-BD5C-6535E0CB639F}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,8 @@
+@tindex Canny
+@tindex Linefit
+
+
+@example
+   #include <VW/Improc/canny.h>
+   #include <VW/Improc/linefit.h>
+@end example

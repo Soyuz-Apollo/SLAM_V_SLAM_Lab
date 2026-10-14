@@ -1,0 +1,18 @@
+XRPMNAME = VWX
+XRPMFILES = displayx.files interfacex.files
+
+# The RPM requires uptodate tgz file
+xrpm: ~/.rpmmacros rpmcommon
+#   1. Create list of files to include in rpm
+	cd $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW; \
+	cat $(XRPMFILES) > tmp.txt; \
+	/bin/sed -e 's/^/\/usr\/include\/VW\//' tmp.txt > headerfiles.txt; \
+#   2. Set the version string in the spec file and cat together
+	/bin/sed -e 's/--VERSION--/'$(VERSION)'/' -e 's/--RELEASE--/'$(TODAY)'/' $(XRPMNAME)/$(XRPMNAME).spec > $(RPMBUILDROOT)/SPEC/$(XRPMNAME)-$(VERSION)-$(TODAY).spec.header; \
+	cat $(RPMBUILDROOT)/SPEC/$(XRPMNAME)-$(VERSION)-$(TODAY).spec.header $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW/headerfiles.txt > $(RPMBUILDROOT)/SPEC/$(XRPMNAME)-$(VERSION)-$(TODAY).spec; \
+#   3. make the RPM and copy it back (and the make report)
+	cd $(RPMBUILDROOT)/SPEC; \
+	rpmbuild -ba -vv $(XRPMNAME)-$(VERSION)-$(TODAY).spec;
+	cp $(RPMBUILDROOT)/RPMS/i386/$(XRPMNAME)-$(VERSION)-$(TODAY).i386.rpm $(VWDIR)
+	cp $(RPMBUILDROOT)/BUILD/VW-$(VERSION)/$(XRPMNAME)-$(VERSION)-$(TODAY).* $(VWDIR)
+	more $(XRPMNAME)-$(VERSION)-$(TODAY).report

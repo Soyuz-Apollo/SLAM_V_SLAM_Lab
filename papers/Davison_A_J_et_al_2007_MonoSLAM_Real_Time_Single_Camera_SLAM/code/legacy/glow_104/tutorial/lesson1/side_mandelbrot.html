@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Sidebar: About the Mandelbrot Set
+</h2>
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 1</a>
+</td>
+</tr></table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<b>What is the Mandelbrot Set?</b>
+</p>
+<p>
+The Mandelbrot Set is one of the most beautiful objects in mathematics. It is a fractal shape resulting from a fairly simple computation. Its real beauty, however, is that, although it is self-similar under magnification, the magnified copies are not identical to the whole. The set, in fact, contains an infinite number of different variations on itself.
+</p>
+
+<p>
+<b>The mathematical foundation</b>
+</p>
+<p>
+The mathematics behind the Mandelbrot Set is pretty straightforward. Consider the complex plane, the set of all complex numbers graphed along two axes. For every coordinate (<i>x</i>,&nbsp;<i>y</i>) on the plane, there is a corresponding complex number <i>z</i>&nbsp;=&nbsp;<i>x</i>&nbsp;+&nbsp;<i>iy</i>, where <i>i</i>&nbsp;=&nbsp;sqrt(-1).
+</p>
+<p>
+Now, consider the series defined by
+</p>
+<blockquote>
+<i>z</i><sub><i>0</i></sub>&nbsp;=&nbsp;0
+<br>
+<i>z</i><sub><i>n</i></sub>&nbsp;=&nbsp;<i>z</i><sub><i>n</i>-1</sub><sup><i>2</i></sup>+<i>C</i>,
+</blockquote>
+<p>
+where <i>C</i> is a complex number parameter. It turns out that this series may have one of two behaviors as <i>n</i>->infinity, depending on the value of <i>C</i>. For some values of <i>C</i>, the series may "blow up" to infinity. i.e.
+</p>
+<blockquote>
+lim<sub><i>n</i>->infinity</sub>(|<i>z</i><sub><i>n</i></sub>|)&nbsp;=&nbsp;infinity. </blockquote>
+<p>
+In this case, we say the series <i>escapes</i>. For other values, the series may chaotically bounce around within a finite region of the plane. In this case, we say the series achieves an <i>orbit</i>.
+</p>
+<p>
+The Mandelbrot Set is defined as the set of complex numbers such that the series <i>z</i><sub><i>n</i></sub> achieves an orbit. If you graph this set on the complex plane, it will form the picture we recognize as the Mandelbrot Set fractal.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Making pretty Mandelbrot Set pictures</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<b>Performing the computation</b>
+</p>
+<p>
+To actually view the Mandelbrot Set, we typically need a computer to test each <i>C</i> and determine whether its corresponding series <i>z</i><sub><i>n</i></sub> escapes or achieves an orbit. Unfortunately, a computer can't directly test whether the limit of a series is infinity. However, we can make a good guess, based on the following theorem.
+</p>
+<blockquote>
+<b>Theorem:</b>
+<p>
+Given any <i>C</i>, and the series <i>z</i><sub><i>0</i></sub>&nbsp;=&nbsp;0, <i>z</i><sub><i>n</i></sub>&nbsp;=&nbsp;<i>z</i><sub><i>n</i>-1</sub><sup><i>2</i></sup>+<i>C</i>,
+<br>
+If |<i>z</i><sub><i>a</i></sub>|&nbsp;>&nbsp;2 for some finite integer <i>a</i>, then the series escapes.
+</p>
+</blockquote>
+<p>
+I won't go through a proof of this theorem here, but intuitively, you can imagine that once |<i>z</i><sub><i>a</i></sub>| passes 2, the operation of squaring it will dominate and cause the norm to blow up.
+</p>
+<p>
+Therefore, given a <i>C</i>, we can test it by computing some large number of elements in the sequence, and seeing if the norm ever exceeds 2. If it does, we know that the point <i>C</i>&nbsp;=&nbsp;<i>x</i>&nbsp;+&nbsp;<i>iy</i> is outside the set. If it does not, we cannot say for certain, but we can guess that there is a good chance that it is within the set.
+</p>
+<p>
+For example, here is a C++ function that tests an input for Mandelbrot Set membership:
+</p>
+<blockquote>
+<pre>bool in_mandelbrot_set(std::complex&lt;double&gt; c)
+{
+    const int MAX_ITERS = 1000;
+    std::complex&lt;double&gt; z = 0.0;
+    for (int i=0; i&lt;MAX_ITERS; ++i)
+    {
+        z = z*z+c;
+        if (z.real()*z.real()+z.imag()*z.imag() > 4.0)
+            return false;
+    }
+    return true;
+}</pre>
+</blockquote>
+<p>
+To compute an image, we need only to iterate over the pixels, determine what complex number each pixel corresponds to, and call in_mandelbrot_set(). In general, the higher the magnification you are using, the higher value of MAX_ITERS you will probably need to generate an accurate image. I've found that a value of 1000 tends to be good enough for most low magnifications.
+</p>
+
+<p>
+<b>Colors for the image</b>
+</p>
+<p>
+To make a visually attractive picture based on the Mandelbrot Set, we need to assign colors to each pixel. Traditionally, pixels that are found to be in the set are colored black, and pixels found to be outside the set are colored a different color. One way of making interesting patterns just outside the set is to assign different colors based on how many iterations it took for |<i>z</i><sub><i>n</i></sub>| to exceed 2.
+</p>
+<p>
+A simple coloring scheme often works very well. For example, you can interpolate smoothly between two colors to get a "fade" effect, or you can alternate between two colors and get a stripe pattern. The choice of a coloring scheme is part of the art of making Mandelbrot images.
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 1</a>
+</td>
+</tr></table>
+</p>
+
+
+<hr size=2>
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

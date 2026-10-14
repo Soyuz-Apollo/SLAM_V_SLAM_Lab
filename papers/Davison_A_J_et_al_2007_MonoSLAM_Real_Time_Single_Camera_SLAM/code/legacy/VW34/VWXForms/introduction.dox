@@ -1,0 +1,11 @@
+/** 
+ * @page VWXFormsPage VWXForms
+ *
+ * The XForms extension library provides a display using
+ * the XForms widget set for event handling. In particular it provides
+ *
+ *     - VW::DisplayXForms : A display with its own window
+ *     - drawxforms.h :
+ *             drawing functions optimised for the DisplayXForms. 
+ *
+ */

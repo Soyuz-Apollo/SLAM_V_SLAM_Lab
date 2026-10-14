@@ -1,0 +1,1038 @@
+# Anjuta Version 1.2.1 
+Compatibility Level: 1 
+
+<PROJECT_DESCRIPTION_START>
+The Vision Workbench set of libraries<PROJECT_DESCRIPTION_END>
+<CONFIG_PROGS_START>
+<CONFIG_PROGS_END>
+<CONFIG_LIBS_START>
+<CONFIG_LIBS_END>
+<CONFIG_HEADERS_START>
+<CONFIG_HEADERS_END>
+<CONFIG_CHARACTERISTICS_START>
+<CONFIG_CHARACTERISTICS_END>
+<CONFIG_LIB_FUNCS_START>
+<CONFIG_LIB_FUNCS_END>
+<CONFIG_ADDITIONAL_START>
+<CONFIG_ADDITIONAL_END>
+<CONFIG_FILES_START>
+<CONFIG_FILES_END>
+<MAKEFILE_AM_START>
+<MAKEFILE_AM_END>
+
+props.file.type=project
+
+anjuta.version=1.2.1
+anjuta.compatibility.level=1
+
+project.name=VW33
+project.type=GENERIC
+project.target.type=EXECUTABLE
+project.version=0.99
+project.author=Ian Reid, Ben Tordoff et al
+project.source.target=unknown
+project.has.gettext=0
+project.gui.command=
+project.programming.language=C++
+project.excluded.modules=intl
+
+project.config.extra.modules.before=
+project.config.extra.modules.after=
+project.config.blocked=1
+project.config.disable.overwriting=1 1 1 1 1 1 1 1 1 
+
+project.menu.entry=VW33 Version 0.99
+project.menu.group=Application
+project.menu.comment=VW33 Version 0.99
+project.menu.icon=
+project.menu.need.terminal=0
+
+project.configure.options=
+anjuta.program.arguments=
+preferences.build.option.jobs=0
+preferences.build.option.silent=0
+preferences.build.option.autosave=0
+preferences.anjuta.make.options=-k
+preferences.make=make
+preferences.build.option.keep.going=1
+preferences.build.option.warn.undef=0
+preferences.autoformat.custom.style= -i8 -sc -bli0 -bl0 -cbi0 -ss
+preferences.indent.opening=0
+preferences.autoformat.disable=1
+preferences.indent.automatic=1
+preferences.use.tabs=0
+preferences.indent.size=4
+preferences.tabsize=4
+preferences.indent.closing=0
+
+module.include.name=.
+module.include.type=
+module.include.files=\
+	SystemHeaders/Firewire/libdc1394/dc1394_control.h\
+	SystemHeaders/Firewire/libraw1394/raw1394.h\
+	SystemHeaders/Firewire/libraw1394/csr.h\
+	VNL/NetLib/f2c.h\
+	VNL/NetLib/netlib.h\
+	VNL/VNL/Algo/adjugate.h\
+	VNL/VNL/Algo/algo_fwd.h\
+	VNL/VNL/Algo/amoeba.h\
+	VNL/VNL/Algo/brent.h\
+	VNL/VNL/Algo/chisquared.h\
+	VNL/VNL/Algo/cholesky.h\
+	VNL/VNL/Algo/complexeigensystem.h\
+	VNL/VNL/Algo/conjugategradient.h\
+	VNL/VNL/Algo/convolve.h\
+	VNL/VNL/Algo/cpolyroots.h\
+	VNL/VNL/Algo/determinant.h\
+	VNL/VNL/Algo/discretediff.h\
+	VNL/VNL/Algo/dll.h\
+	VNL/VNL/Algo/fft.h\
+	VNL/VNL/Algo/fft1d.h\
+	VNL/VNL/Algo/fft2d.h\
+	VNL/VNL/Algo/fftbase.h\
+	VNL/VNL/Algo/fftprimefactors.h\
+	VNL/VNL/Algo/gaussiankernel1d.h\
+	VNL/VNL/Algo/generalizedschur.h\
+	VNL/VNL/Algo/generalizedeigensystem.h\
+	VNL/VNL/Algo/lbfgs.h\
+	VNL/VNL/Algo/levenbergmarquardt.h\
+	VNL/VNL/Algo/lsqr.h\
+	VNL/VNL/Algo/matrixinverse.h\
+	VNL/VNL/Algo/netlibsymbols.h\
+	VNL/VNL/Algo/orthogonalcomplement.h\
+	VNL/VNL/Algo/powell.h\
+	VNL/VNL/Algo/qr.h\
+	VNL/VNL/Algo/realeigensystem.h\
+	VNL/VNL/Algo/svd.h\
+	VNL/VNL/Algo/rnpolysolve.h\
+	VNL/VNL/Algo/rpolyroots.h\
+	VNL/VNL/Algo/scatter3x3.h\
+	VNL/VNL/Algo/sparsesymmetriceigensystem.h\
+	VNL/VNL/Algo/symmetriceigensystem.h\
+	VNL/VNL/T_n.h\
+	VNL/VNL/VC6StdFix.h\
+	VNL/VNL/VC6WarningsFix.h\
+	VNL/VNL/alloc.h\
+	VNL/VNL/bignum.h\
+	VNL/VNL/block.h\
+	VNL/VNL/complex.h\
+	VNL/VNL/complexify.h\
+	VNL/VNL/complextraits.h\
+	VNL/VNL/config.h\
+	VNL/VNL/copy.h\
+	VNL/VNL/cvector.h\
+	VNL/VNL/costfunction.h\
+	VNL/VNL/crossproductmatrix.h\
+	VNL/VNL/det.h\
+	VNL/VNL/diagmatrix.h\
+	VNL/VNL/dll.h\
+	VNL/VNL/error.h\
+	VNL/VNL/fastops.h\
+	VNL/VNL/filematrix.h\
+	VNL/VNL/filevector.h\
+	VNL/VNL/finite.h\
+	VNL/VNL/fortrancopy.h\
+	VNL/VNL/fwd.h\
+	VNL/VNL/identity.h\
+	VNL/VNL/imag.h\
+	VNL/VNL/math.h\
+	VNL/VNL/leastsquarescostfunction.h\
+	VNL/VNL/leastsquaresfunction.h\
+	VNL/VNL/linearoperators3.h\
+	VNL/VNL/linearsystem.h\
+	VNL/VNL/matlabfilewrite.h\
+	VNL/VNL/matlabheader.h\
+	VNL/VNL/matlabprint.h\
+	VNL/VNL/matlabprint2.h\
+	VNL/VNL/matlabprintformat.h\
+	VNL/VNL/matlabprintscalar.h\
+	VNL/VNL/matlabread.h\
+	VNL/VNL/matlabwrite.h\
+	VNL/VNL/matops.h\
+	VNL/VNL/matrix.h\
+	VNL/VNL/matrixexp.h\
+	VNL/VNL/matrixfixed.h\
+	VNL/VNL/matrixfixedref.h\
+	VNL/VNL/matrixref.h\
+	VNL/VNL/real.h\
+	VNL/VNL/nonlinearminimizer.h\
+	VNL/VNL/numericlimits.h\
+	VNL/VNL/numerictraits.h\
+	VNL/VNL/operators.h\
+	VNL/VNL/rational.h\
+	VNL/VNL/realnpolynomial.h\
+	VNL/VNL/realpolynomial.h\
+	VNL/VNL/sample.h\
+	VNL/VNL/scalarjoiniterator.h\
+	VNL/VNL/sparsematrix.h\
+	VNL/VNL/sparsematrixlinearsystem.h\
+	VNL/VNL/symmatrix.h\
+	VNL/VNL/tag.h\
+	VNL/VNL/trace.h\
+	VNL/VNL/transpose.h\
+	VNL/VNL/unaryfunction.h\
+	VNL/VNL/vector.h\
+	VNL/VNL/vectordereference.h\
+	VNL/VNL/vectorfixed.h\
+	VNL/VNL/vectorfixedref.h\
+	VNL/VNL/vectorref.h\
+	VWCore/Events/events.h\
+	VWCore/events.h\
+	VWCore/geomcompute.h\
+	VWCore/geomobjects.h\
+	VWCore/graphics.h\
+	VWCore/image.h\
+	VWCore/improc.h\
+	VWCore/iobasics.h\
+	VWCore/math.h\
+	VWCore/sequencers.h\
+	VWCore/utils.h\
+	VWCore/GeomCompute/computefuncs.h\
+	VWCore/GeomCompute/convexhull2d.h\
+	VWCore/GeomCompute/delaunay.h\
+	VWCore/GeomCompute/homography2dcomputelinear.h\
+	VWCore/GeomCompute/homography2dcomputemlesac.h\
+	VWCore/GeomCompute/homography2dcomputenonlinear.h\
+	VWCore/GeomCompute/sampling.h\
+	VWCore/GeomCompute/line2dcompute.h\
+	VWCore/GeomCompute/line2dcomputeguisac.h\
+	VWCore/GeomCompute/line2dcomputelinear.h\
+	VWCore/GeomCompute/line2dcomputemlesac.h\
+	VWCore/GeomCompute/mlesacfuncs.h\
+	VWCore/GeomCompute/pmatrixcomputelinear.h\
+	VWCore/GeomCompute/radialdistortion.h\
+	VWCore/GeomCompute/pmatrixcomputenonlinear.h\
+	VWCore/GeomCompute/radialdistortioncompute.h\
+	VWCore/GeomObjects/Deprecated/computelinear.h\
+	VWCore/GeomObjects/Deprecated/computemlesac.h\
+	VWCore/GeomObjects/Deprecated/computenonlinear.h\
+	VWCore/GeomObjects/Deprecated/fmatrix_compute7point.h\
+	VWCore/GeomObjects/Deprecated/fmatrix_computelinear.h\
+	VWCore/GeomObjects/Deprecated/fmatrix_computemlesac.h\
+	VWCore/GeomObjects/Deprecated/fmatrix_computenonlinear.h\
+	VWCore/GeomObjects/Deprecated/h2d_computenonlinear.h\
+	VWCore/GeomObjects/Deprecated/fmplanar_computenonlinear.h\
+	VWCore/GeomObjects/Deprecated/homography2d_computelinear.h\
+	VWCore/GeomObjects/Deprecated/homography2d_computemlesac.h\
+	VWCore/GeomObjects/calibrationmatrix.h\
+	VWCore/GeomObjects/calibrationtable.h\
+	VWCore/GeomObjects/fmatrix.h\
+	VWCore/GeomObjects/fmatrixplanar.h\
+	VWCore/GeomObjects/generatedata.h\
+	VWCore/GeomObjects/homography2d.h\
+	VWCore/GeomObjects/line2d.h\
+	VWCore/GeomObjects/lineseg2d.h\
+	VWCore/GeomObjects/lineseg3d.h\
+	VWCore/GeomObjects/normalisation.h\
+	VWCore/GeomObjects/normalisation3d.h\
+	VWCore/GeomObjects/operations.h\
+	VWCore/GeomObjects/point2d.h\
+	VWCore/GeomObjects/point3d.h\
+	VWCore/GeomObjects/projectionmatrix.h\
+	VWCore/GeomObjects/quaternion.h\
+	VWCore/GeomObjects/rotationmatrix.h\
+	VWCore/GeomObjects/trajectorymap.h\
+	VWCore/GeomObjects/transform.h\
+	VWCore/Graphics/displaybase.h\
+	VWCore/Graphics/draw.h\
+	VWCore/Graphics/drawimage.h\
+	VWCore/Graphics/drawtypes.h\
+	VWCore/IOBasics/ioobject.h\
+	VWCore/IOBasics/miscioutils.h\
+	VWCore/IOBasics/paramfiles_general.h\
+	VWCore/IOBasics/paramparser.h\
+	VWCore/IOBasics/paramwriter.h\
+	VWCore/IOBasics/xmlstuff.h\
+	VWCore/Image/imagebase.h\
+	VWCore/Image/imageconversions.h\
+	VWCore/Image/imagecopy.h\
+	VWCore/Image/imagehsv.h\
+	VWCore/Image/imageinterleave.h\
+	VWCore/Image/imageio.h\
+	VWCore/Image/imagemono.h\
+	VWCore/Image/imagergb.h\
+	VWCore/Image/imagergbplanes.h\
+	VWCore/Image/imageyuv.h\
+	VWCore/Image/pixelconversions.h\
+	VWCore/Image/pixelhsv.h\
+	VWCore/Image/pixelmono.h\
+	VWCore/Image/pixelrgb.h\
+	VWCore/Image/pixelyuv.h\
+	VWCore/Image/pixptr.h\
+	VWCore/Image/roi.h\
+	VWCore/Improc/canny.h\
+	VWCore/Improc/chamferdistance.h\
+	VWCore/Improc/classifieruv.h\
+	VWCore/Improc/convolve.h\
+	VWCore/Improc/cornermatcher.h\
+	VWCore/Improc/correlate.h\
+	VWCore/Improc/distortimage.h\
+	VWCore/Improc/edgel.h\
+	VWCore/Improc/groupdef.h\
+	VWCore/Improc/imagediff.h\
+	VWCore/Improc/imagepatch.h\
+	VWCore/Improc/improc_misc.h\
+	VWCore/Improc/integralimage.h\
+	VWCore/Improc/integralimagesquared.h\
+	VWCore/Improc/linefit.h\
+	VWCore/Improc/linesegfitted.h\
+	VWCore/Improc/parametricflow.h\
+	VWCore/Improc/plessey.h\
+	VWCore/Improc/plessey_bjt.h\
+	VWCore/Improc/plesseycorner.h\
+	VWCore/Improc/plesseyold.h\
+	VWCore/Improc/pyramid.h\
+	VWCore/Improc/pyramidcorrelate.h\
+	VWCore/Improc/sift.h\
+	VWCore/Improc/smooth.h\
+	VWCore/Improc/subsample.h\
+	VWCore/Improc/threshold.h\
+	VWCore/Improc/warp.h\
+	VWCore/Improc/scaleimage.h\
+	VWCore/Math/atan2.h\
+	VWCore/Math/chebyshevpolynomial.h\
+	VWCore/Math/kalmanfilter.h\
+	VWCore/Math/kalmanfilterwithinput.h\
+	VWCore/Math/nan.h\
+	VWCore/Math/pdfbase1d.h\
+	VWCore/Math/pdfbase2d.h\
+	VWCore/Math/pdfbase2diso.h\
+	VWCore/Math/pdfexponential.h\
+	VWCore/Math/pdfgaussian1d.h\
+	VWCore/Math/pdfgaussian2d.h\
+	VWCore/Math/pdfgaussian2diso.h\
+	VWCore/Math/pdfrayleigh.h\
+	VWCore/Math/pdfuniform1d.h\
+	VWCore/Math/random.h\
+	VWCore/Sequencers/sequencerbase.h\
+	VWCore/Sequencers/sequencerfile.h\
+	VWCore/Sequencers/sequencermovie.h\
+	VWCore/Sequencers/thread.h\
+	VWCore/Utils/misc.h\
+	VWCore/Utils/timeops.h\
+	VWCore/Utils/timer.h\
+	VWFirewire/firewirecamera.h\
+	VWFirewire/sequencerfirewire.h\
+	VWGL/DisplayGL/awfedge.h\
+	VWGL/DisplayGL/awfface.h\
+	VWGL/DisplayGL/awfmaterial.h\
+	VWGL/DisplayGL/awfobject.h\
+	VWGL/DisplayGL/displayglcommon.h\
+	VWGL/DisplayGL/displayglut.h\
+	VWGL/DisplayGL/drawfirei.h\
+	VWGL/DisplayGL/drawgl.h\
+	VWGL/DisplayGL/drawgti.h\
+	VWGL/DisplayGL/drawvl500.h\
+	VWGL/DisplayGL/drawthreequarterdesk.h\
+	VWGL/DisplayGL/drawwero.h\
+	VWGL/DisplayGL/drawyorick811.h\
+	VWGL/DisplayGL/glutloop.h\
+	VWGL/DisplayGL/glutwindow.h\
+	VWGL/DisplayGL/threedtoolglcommon.h\
+	VWGL/DisplayGL/threedtoolglut.h\
+	VWGL/displaygl.h\
+	VWGL/interfacegl.h\
+	VWGL/InterfaceGL/button.h\
+	VWGL/InterfaceGL/checkbox.h\
+	VWGL/InterfaceGL/colour.h\
+	VWGL/InterfaceGL/container.h\
+	VWGL/InterfaceGL/displayglutewidget.h\
+	VWGL/InterfaceGL/frame.h\
+	VWGL/InterfaceGL/hbox.h\
+	VWGL/InterfaceGL/label.h\
+	VWGL/InterfaceGL/simplesequencerglute.h\
+	VWGL/InterfaceGL/slider.h\
+	VWGL/InterfaceGL/theme.h\
+	VWGL/InterfaceGL/threedtoolglutewidget.h\
+	VWGL/InterfaceGL/vbox.h\
+	VWGL/InterfaceGL/widget.h\
+	VWGL/InterfaceGL/window.h\
+	VWGTI/GTI/gti_main.h\
+	VWGTI/GTI/gti_proto.h\
+	VWGTI/TransputerCode/channel.h\
+	VWGTI/TransputerCode/const.h\
+	VWGTI/TransputerCode/defs.h\
+	VWGTI/TransputerCode/flag.h\
+	VWGTI/TransputerCode/glob.h\
+	VWGTI/TransputerCode/inmos.h\
+	VWGTI/TransputerCode/lowlev2.h\
+	VWGTI/TransputerCode/newdef.h\
+	VWGTI/TransputerCode/str.h\
+	VWGTI/TransputerCode/utils.h\
+	VWGTI/TransputerCode/zero.h\
+	VWGTI/TransputerComms/channel.h\
+	VWGTI/TransputerComms/inmos.h\
+	VWGTI/TransputerComms/iserv.h\
+	VWGTI/TransputerComms/iserver.h\
+	VWGTI/TransputerComms/pack.h\
+	VWGTK/DisplayGTK/displaygtk.h\
+	VWGTK/DisplayGTK/displaygtkcommon.h\
+	VWGTK/DisplayGTK/displaygtkgl.h\
+	VWGTK/DisplayGTK/displaygtkglwidget.h\
+	VWGTK/DisplayGTK/displaygtkwidget.h\
+	VWGTK/DisplayGTK/draw3dgtkgl.h\
+	VWGTK/DisplayGTK/drawgtk.h\
+	VWGTK/DisplayGTK/threedtoolgtkglwidget.h\
+	VWGTK/InterfaceGTK/classifieruvgtk.h\
+	VWGTK/InterfaceGTK/firewirecameragtk.h\
+	VWGTK/InterfaceGTK/interfacegtk.h\
+	VWGTK/InterfaceGTK/plesseyparamsgtk.h\
+	VWGTK/InterfaceGTK/sequencerfilegtk.h\
+	VWGTK/InterfaceGTK/sequencerfirewiregtk.h\
+	VWGTK/InterfaceGTK/sequencermoviegtk.h\
+	VWGTK/InterfaceGTK/yorickgtk.h\
+	VWGTK/Pixmaps/blank_icon.h\
+	VWGTK/Pixmaps/hide_icon.h\
+	VWGTK/Pixmaps/led_cyan.h\
+	VWGTK/Pixmaps/led_green.h\
+	VWGTK/Pixmaps/led_off.h\
+	VWGTK/Pixmaps/led_red.h\
+	VWGTK/Pixmaps/led_ring.h\
+	VWGTK/Pixmaps/load_icon.h\
+	VWGTK/Pixmaps/save_icon.h\
+	VWMeteor/ioctl_meteor.h\
+	VWMeteor/sequencermeteor.h\
+	VWWx/DisplayWx/displaywxglwidget.h\
+	VWWx/DisplayWx/threedtoolwxglwidget.h\
+	VWWx/DisplayWx/vwdrawevent.h\
+	VWWx/DisplayWx/drawwxgl.h\
+	VWWx/DisplayWx/vwmouseevents.h\
+	VWWx/InterfaceWx/sequencerfilewx.h\
+	VWWx/InterfaceWx/evtsequencernewframe.h\
+	VWWx/InterfaceWx/sequencerfirewirewx.h\
+	VWX/Display/displayx.h\
+	VWX/Display/drawx.h\
+	VWX/Display/xloop.h\
+	VWXForms/Display/displayxforms.h\
+	VWXForms/Display/displayxformsform.h\
+	VWXForms/Display/drawxforms.h\
+	VWYorick/yorickmain.h\
+	VWYorick/yorickpmac.h\
+	VWYorick/yorickpmacaddress.h
+
+module.source.name=.
+module.source.type=
+module.source.files=\
+	VNL/NetLib/tests/lbfgs-example.c\
+	VNL/NetLib/tests/lsqr-test.c\
+	VNL/NetLib/F77_aloc.c\
+	VNL/NetLib/c_abs.c\
+	VNL/NetLib/c_div.c\
+	VNL/NetLib/cabs.c\
+	VNL/NetLib/camsun.c\
+	VNL/NetLib/caxpy.c\
+	VNL/NetLib/ccopy.c\
+	VNL/NetLib/cdotc.c\
+	VNL/NetLib/cg.c\
+	VNL/NetLib/cqrdc.c\
+	VNL/NetLib/cqrsl.c\
+	VNL/NetLib/cscal.c\
+	VNL/NetLib/csrot.c\
+	VNL/NetLib/csvdc.c\
+	VNL/NetLib/cswap.c\
+	VNL/NetLib/d_cnjg.c\
+	VNL/NetLib/d_imag.c\
+	VNL/NetLib/d_lg10.c\
+	VNL/NetLib/d_sign.c\
+	VNL/NetLib/dasum.c\
+	VNL/NetLib/daxpy.c\
+	VNL/NetLib/dcopy.c\
+	VNL/NetLib/ddot.c\
+	VNL/NetLib/dgecon.c\
+	VNL/NetLib/dgemm.c\
+	VNL/NetLib/dgemv.c\
+	VNL/NetLib/dgeqpf.c\
+	VNL/NetLib/dgeqr2.c\
+	VNL/NetLib/dgeqrf.c\
+	VNL/NetLib/dger.c\
+	VNL/NetLib/dgerq2.c\
+	VNL/NetLib/dgesc2.c\
+	VNL/NetLib/dgetc2.c\
+	VNL/NetLib/dggbak.c\
+	VNL/NetLib/dggbal.c\
+	VNL/NetLib/dgges.c\
+	VNL/NetLib/dgghrd.c\
+	VNL/NetLib/dggsvd.c\
+	VNL/NetLib/dggsvp.c\
+	VNL/NetLib/dgpfa.c\
+	VNL/NetLib/dgpfa2f.c\
+	VNL/NetLib/dgpfa3f.c\
+	VNL/NetLib/dgpfa5f.c\
+	VNL/NetLib/dhgeqz.c\
+	VNL/NetLib/dlabad.c\
+	VNL/NetLib/dlacon.c\
+	VNL/NetLib/dlacpy.c\
+	VNL/NetLib/dladiv.c\
+	VNL/NetLib/dlag2.c\
+	VNL/NetLib/dlags2.c\
+	VNL/NetLib/dlarf.c\
+	VNL/NetLib/dlagv2.c\
+	VNL/NetLib/dlamch.c\
+	VNL/NetLib/dlange.c\
+	VNL/NetLib/dlanhs.c\
+	VNL/NetLib/dlapll.c\
+	VNL/NetLib/dlapmt.c\
+	VNL/NetLib/dlapy2.c\
+	VNL/NetLib/dlapy3.c\
+	VNL/NetLib/dlarfb.c\
+	VNL/NetLib/dlarfg.c\
+	VNL/NetLib/dlarft.c\
+	VNL/NetLib/dlartg.c\
+	VNL/NetLib/dlas2.c\
+	VNL/NetLib/dlascl.c\
+	VNL/NetLib/dlaset.c\
+	VNL/NetLib/dlassq.c\
+	VNL/NetLib/dlasv2.c\
+	VNL/NetLib/dlaswp.c\
+	VNL/NetLib/dlatdf.c\
+	VNL/NetLib/dlatrs.c\
+	VNL/NetLib/dnlaso.c\
+	VNL/NetLib/dnrm2.c\
+	VNL/NetLib/dorg2r.c\
+	VNL/NetLib/dorgqr.c\
+	VNL/NetLib/dorgr2.c\
+	VNL/NetLib/dorm2r.c\
+	VNL/NetLib/dormqr.c\
+	VNL/NetLib/dormr2.c\
+	VNL/NetLib/dpoco.c\
+	VNL/NetLib/dpodi.c\
+	VNL/NetLib/dpofa.c\
+	VNL/NetLib/dposl.c\
+	VNL/NetLib/dqrdc.c\
+	VNL/NetLib/dqrsl.c\
+	VNL/NetLib/drot.c\
+	VNL/NetLib/drotg.c\
+	VNL/NetLib/drscl.c\
+	VNL/NetLib/dscal.c\
+	VNL/NetLib/dsetgpfa.c\
+	VNL/NetLib/dsvdc.c\
+	VNL/NetLib/dswap.c\
+	VNL/NetLib/dtgex2.c\
+	VNL/NetLib/dtgexc.c\
+	VNL/NetLib/dtgsen.c\
+	VNL/NetLib/dtgsja.c\
+	VNL/NetLib/dtgsy2.c\
+	VNL/NetLib/dtgsyl.c\
+	VNL/NetLib/dtrans.c\
+	VNL/NetLib/dtrmm.c\
+	VNL/NetLib/dtrmv.c\
+	VNL/NetLib/dtrsv.c\
+	VNL/NetLib/dzasum.c\
+	VNL/NetLib/dznrm2.c\
+	VNL/NetLib/enorm.c\
+	VNL/NetLib/exit.c\
+	VNL/NetLib/fdjac2.c\
+	VNL/NetLib/gpfa.c\
+	VNL/NetLib/gpfa2f.c\
+	VNL/NetLib/gpfa3f.c\
+	VNL/NetLib/gpfa5f.c\
+	VNL/NetLib/i_dnnt.c\
+	VNL/NetLib/idamax.c\
+	VNL/NetLib/ilaenv.c\
+	VNL/NetLib/isamax.c\
+	VNL/NetLib/izamax.c\
+	VNL/NetLib/izmax1.c\
+	VNL/NetLib/lbfgs-lb1.c\
+	VNL/NetLib/lbfgs_.c\
+	VNL/NetLib/lmder.c\
+	VNL/NetLib/lmder1.c\
+	VNL/NetLib/lmdif.c\
+	VNL/NetLib/lmpar.c\
+	VNL/NetLib/lsame.c\
+	VNL/NetLib/lsqr_.c\
+	VNL/NetLib/machineparams.c\
+	VNL/NetLib/pow_dd.c\
+	VNL/NetLib/pow_di.c\
+	VNL/NetLib/pow_ii.c\
+	VNL/NetLib/pow_ri.c\
+	VNL/NetLib/qrfac.c\
+	VNL/NetLib/pythag.c\
+	VNL/NetLib/qrsolv.c\
+	VNL/NetLib/r_cnjg.c\
+	VNL/NetLib/r_imag.c\
+	VNL/NetLib/r_sign.c\
+	VNL/NetLib/rg.c\
+	VNL/NetLib/rpoly.c\
+	VNL/NetLib/rs.c\
+	VNL/NetLib/rsg.c\
+	VNL/NetLib/s_cat.c\
+	VNL/NetLib/s_cmp.c\
+	VNL/NetLib/s_copy.c\
+	VNL/NetLib/sasum.c\
+	VNL/NetLib/saxpy.c\
+	VNL/NetLib/scnrm2.c\
+	VNL/NetLib/scopy.c\
+	VNL/NetLib/sdot.c\
+	VNL/NetLib/setgpfa.c\
+	VNL/NetLib/sgemv.c\
+	VNL/NetLib/sgeqpf.c\
+	VNL/NetLib/sgeqr2.c\
+	VNL/NetLib/sger.c\
+	VNL/NetLib/sgerq2.c\
+	VNL/NetLib/sggsvd.c\
+	VNL/NetLib/sggsvp.c\
+	VNL/NetLib/sig_die.c\
+	VNL/NetLib/slacpy.c\
+	VNL/NetLib/slags2.c\
+	VNL/NetLib/slamch.c\
+	VNL/NetLib/slange.c\
+	VNL/NetLib/slapll.c\
+	VNL/NetLib/slapmt.c\
+	VNL/NetLib/slapy2.c\
+	VNL/NetLib/slarf.c\
+	VNL/NetLib/slarfg.c\
+	VNL/NetLib/slartg.c\
+	VNL/NetLib/slas2.c\
+	VNL/NetLib/slaset.c\
+	VNL/NetLib/slassq.c\
+	VNL/NetLib/slasv2.c\
+	VNL/NetLib/snlaso.c\
+	VNL/NetLib/snrm2.c\
+	VNL/NetLib/sorg2r.c\
+	VNL/NetLib/sorm2r.c\
+	VNL/NetLib/sormr2.c\
+	VNL/NetLib/spoco.c\
+	VNL/NetLib/spodi.c\
+	VNL/NetLib/spofa.c\
+	VNL/NetLib/sposl.c\
+	VNL/NetLib/sqrdc.c\
+	VNL/NetLib/sqrsl.c\
+	VNL/NetLib/srot.c\
+	VNL/NetLib/srotg.c\
+	VNL/NetLib/sscal.c\
+	VNL/NetLib/ssvdc.c\
+	VNL/NetLib/sswap.c\
+	VNL/NetLib/stgsja.c\
+	VNL/NetLib/tql1.c\
+	VNL/NetLib/tql2.c\
+	VNL/NetLib/trans.c\
+	VNL/NetLib/tred1.c\
+	VNL/NetLib/tred2.c\
+	VNL/NetLib/urand.c\
+	VNL/NetLib/xerbla.c\
+	VNL/NetLib/z_abs.c\
+	VNL/NetLib/z_div.c\
+	VNL/NetLib/z_sqrt.c\
+	VNL/NetLib/zaxpy.c\
+	VNL/NetLib/zcopy.c\
+	VNL/NetLib/zdotc.c\
+	VNL/NetLib/zdotu.c\
+	VNL/NetLib/zdrot.c\
+	VNL/NetLib/zdscal.c\
+	VNL/NetLib/zgebak.c\
+	VNL/NetLib/zgebal.c\
+	VNL/NetLib/zgeev.c\
+	VNL/NetLib/zgehd2.c\
+	VNL/NetLib/zgehrd.c\
+	VNL/NetLib/zgemm.c\
+	VNL/NetLib/zgemv.c\
+	VNL/NetLib/zgerc.c\
+	VNL/NetLib/zhseqr.c\
+	VNL/NetLib/zlacgv.c\
+	VNL/NetLib/zlacpy.c\
+	VNL/NetLib/zladiv.c\
+	VNL/NetLib/zlahqr.c\
+	VNL/NetLib/zlahrd.c\
+	VNL/NetLib/zlange.c\
+	VNL/NetLib/zlanhs.c\
+	VNL/NetLib/zlarf.c\
+	VNL/NetLib/zlarfb.c\
+	VNL/NetLib/zlarfg.c\
+	VNL/NetLib/zlarft.c\
+	VNL/NetLib/zlarfx.c\
+	VNL/NetLib/zlascl.c\
+	VNL/NetLib/zlaset.c\
+	VNL/NetLib/zlassq.c\
+	VNL/NetLib/zlatrs.c\
+	VNL/NetLib/zqrdc.c\
+	VNL/NetLib/zqrsl.c\
+	VNL/NetLib/zscal.c\
+	VNL/NetLib/zsvdc.c\
+	VNL/NetLib/zswap.c\
+	VNL/NetLib/ztrevc.c\
+	VNL/NetLib/ztrmm.c\
+	VNL/NetLib/ztrmv.c\
+	VNL/NetLib/ztrsv.c\
+	VNL/NetLib/zung2r.c\
+	VNL/NetLib/zunghr.c\
+	VNL/NetLib/zungqr.c\
+	VNL/VNL/Algo/Templates/adjugate_inst.cpp\
+	VNL/VNL/Algo/Templates/amoeba_inst.cpp\
+	VNL/VNL/Algo/Templates/cholesky_inst.cpp\
+	VNL/VNL/Algo/Templates/convolve_inst.cpp\
+	VNL/VNL/Algo/Templates/determinant_inst.cpp\
+	VNL/VNL/Algo/Templates/fft_inst.cpp\
+	VNL/VNL/Algo/Templates/fsmqr_inst.cpp\
+	VNL/VNL/Algo/Templates/fsmsvd_inst.cpp\
+	VNL/VNL/Algo/Templates/matrixinverse_inst.cpp\
+	VNL/VNL/Algo/Templates/orthogonalcomplement_inst.cpp\
+	VNL/VNL/Algo/Templates/qr_inst.cpp\
+	VNL/VNL/Algo/Templates/scatter3x3_inst.cpp\
+	VNL/VNL/Algo/Templates/svd_inst.cpp\
+	VNL/VNL/Algo/amoeba.cpp\
+	VNL/VNL/Algo/brent.cpp\
+	VNL/VNL/Algo/chisquared.cpp\
+	VNL/VNL/Algo/complexeigensystem.cpp\
+	VNL/VNL/Algo/conjugategradient.cpp\
+	VNL/VNL/Algo/cpolyroots.cpp\
+	VNL/VNL/Algo/discretediff.cpp\
+	VNL/VNL/Algo/fft.cpp\
+	VNL/VNL/Algo/gaussiankernel1d.cpp\
+	VNL/VNL/Algo/generalizedeigensystem.cpp\
+	VNL/VNL/Algo/generalizedschur.cpp\
+	VNL/VNL/Algo/lbfgs.cpp\
+	VNL/VNL/Algo/levenbergmarquardt.cpp\
+	VNL/VNL/Algo/lsqr.cpp\
+	VNL/VNL/Algo/powell.cpp\
+	VNL/VNL/Algo/realeigensystem.cpp\
+	VNL/VNL/Algo/rnpolysolve.cpp\
+	VNL/VNL/Algo/rpolyroots.cpp\
+	VNL/VNL/Algo/sparsesymmetriceigensystem.cpp\
+	VNL/VNL/Algo/symmetriceigensystem.cpp\
+	VNL/VNL/alloc.cpp\
+	VNL/VNL/bignum.cpp\
+	VNL/VNL/binary.cpp\
+	VNL/VNL/block.cpp\
+	VNL/VNL/complex.cpp\
+	VNL/VNL/complextraits.cpp\
+	VNL/VNL/copy.cpp\
+	VNL/VNL/costfunction.cpp\
+	VNL/VNL/crossproductmatrix.cpp\
+	VNL/VNL/error.cpp\
+	VNL/VNL/fastops.cpp\
+	VNL/VNL/leastsquarescostfunction.cpp\
+	VNL/VNL/leastsquaresfunction.cpp\
+	VNL/VNL/linearoperators3.cpp\
+	VNL/VNL/linearsystem.cpp\
+	VNL/VNL/math.cpp\
+	VNL/VNL/matlabfilewrite.cpp\
+	VNL/VNL/matlabheader.cpp\
+	VNL/VNL/matlabprint.cpp\
+	VNL/VNL/matlabprint2.cpp\
+	VNL/VNL/matlabprintformat.cpp\
+	VNL/VNL/matlabprintscalar.cpp\
+	VNL/VNL/matlabread.cpp\
+	VNL/VNL/matlabwrite.cpp\
+	VNL/VNL/matops.cpp\
+	VNL/VNL/nonlinearminimizer.cpp\
+	VNL/VNL/numericlimits.cpp\
+	VNL/VNL/numerictraits.cpp\
+	VNL/VNL/rational.cpp\
+	VNL/VNL/realnpolynomial.cpp\
+	VNL/VNL/realpolynomial.cpp\
+	VNL/VNL/sample.cpp\
+	VNL/VNL/sparsematrixlinearsystem.cpp\
+	VNL/VNL/trace.cpp\
+	VNL/VNL/transpose.cpp\
+	VNL/VNL/unaryfunction.cpp\
+	VNL/VNL/Templates/complexops_inst.cpp\
+	VNL/VNL/Templates/cvector_inst.cpp\
+	VNL/VNL/Templates/det_inst.cpp\
+	VNL/VNL/Templates/diagmatrix_inst.cpp\
+	VNL/VNL/Templates/filematrix_inst.cpp\
+	VNL/VNL/Templates/filevector_inst.cpp\
+	VNL/VNL/Templates/fortrancopy_inst.cpp\
+	VNL/VNL/Templates/matlabprint_inst.cpp\
+	VNL/VNL/Templates/matrix_inst.cpp\
+	VNL/VNL/Templates/matrixexp_inst.cpp\
+	VNL/VNL/Templates/matrixfixed_inst.cpp\
+	VNL/VNL/Templates/matrixref_inst.cpp\
+	VNL/VNL/Templates/sparsematrix_inst.cpp\
+	VNL/VNL/Templates/symmatrix_inst.cpp\
+	VNL/VNL/Templates/vector_inst.cpp\
+	VNL/VNL/Templates/vectorfixed_inst.cpp\
+	VNL/VNL/Templates/vectorref_inst.cpp\
+	VWCore/GeomCompute/convexhull2d.cpp\
+	VWCore/GeomCompute/delaunay.cpp\
+	VWCore/GeomCompute/homography2dcomputelinear.cpp\
+	VWCore/GeomCompute/homography2dcomputemlesac.cpp\
+	VWCore/GeomCompute/homography2dcomputenonlinear.cpp\
+	VWCore/GeomCompute/line2dcomputeguisac.cpp\
+	VWCore/GeomCompute/line2dcomputelinear.cpp\
+	VWCore/GeomCompute/line2dcomputemlesac.cpp\
+	VWCore/GeomCompute/pmatrixcomputelinear.cpp\
+	VWCore/GeomCompute/pmatrixcomputenonlinear.cpp\
+	VWCore/GeomCompute/radialdistortion.cpp\
+	VWCore/GeomCompute/radialdistortioncompute.cpp\
+	VWCore/GeomCompute/sampling.cpp\
+	VWCore/GeomObjects/Deprecated/computelinear.cpp\
+	VWCore/GeomObjects/Deprecated/computemlesac.cpp\
+	VWCore/GeomObjects/Deprecated/computenonlinear.cpp\
+	VWCore/GeomObjects/Deprecated/fmatrix_compute7point.cpp\
+	VWCore/GeomObjects/Deprecated/fmatrix_computelinear.cpp\
+	VWCore/GeomObjects/Deprecated/fmatrix_computemlesac.cpp\
+	VWCore/GeomObjects/Deprecated/fmatrix_computenonlinear.cpp\
+	VWCore/GeomObjects/Deprecated/fmplanar_computenonlinear.cpp\
+	VWCore/GeomObjects/Deprecated/h2d_computenonlinear.cpp\
+	VWCore/GeomObjects/Deprecated/homography2d_computelinear.cpp\
+	VWCore/GeomObjects/Deprecated/homography2d_computemlesac.cpp\
+	VWCore/GeomObjects/calibrationmatrix.cpp\
+	VWCore/GeomObjects/calibrationtable.cpp\
+	VWCore/GeomObjects/fmatrix.cpp\
+	VWCore/GeomObjects/fmatrixplanar.cpp\
+	VWCore/GeomObjects/generatedata.cpp\
+	VWCore/GeomObjects/homography2d.cpp\
+	VWCore/GeomObjects/line2d.cpp\
+	VWCore/GeomObjects/lineseg2d.cpp\
+	VWCore/GeomObjects/lineseg3d.cpp\
+	VWCore/GeomObjects/normalisation.cpp\
+	VWCore/GeomObjects/normalisation3d.cpp\
+	VWCore/GeomObjects/operations.cpp\
+	VWCore/GeomObjects/point2d.cpp\
+	VWCore/GeomObjects/point3d.cpp\
+	VWCore/GeomObjects/projectionmatrix.cpp\
+	VWCore/GeomObjects/quaternion.cpp\
+	VWCore/GeomObjects/rotationmatrix.cpp\
+	VWCore/Graphics/displaybase.cpp\
+	VWCore/Graphics/draw.cpp\
+	VWCore/Graphics/drawimage.cpp\
+	VWCore/IOBasics/ioobject.cpp\
+	VWCore/IOBasics/miscioutils.cpp\
+	VWCore/IOBasics/paramparser.cpp\
+	VWCore/IOBasics/paramwriter.cpp\
+	VWCore/IOBasics/xmlstuff.cpp\
+	VWCore/Image/imageconversions.cpp\
+	VWCore/Image/imagecopy.cpp\
+	VWCore/Image/imagehsv.cpp\
+	VWCore/Image/imageinterleave.cpp\
+	VWCore/Image/imageio.cpp\
+	VWCore/Image/imagemono.cpp\
+	VWCore/Image/imagergb.cpp\
+	VWCore/Image/imagergbplanes.cpp\
+	VWCore/Image/imageyuv.cpp\
+	VWCore/Image/pixelhsv.cpp\
+	VWCore/Image/pixelmono.cpp\
+	VWCore/Image/pixelrgb.cpp\
+	VWCore/Image/pixelyuv.cpp\
+	VWCore/Improc/canny.cpp\
+	VWCore/Improc/chamferdistance.cpp\
+	VWCore/Improc/classifieruv.cpp\
+	VWCore/Improc/convolve.cpp\
+	VWCore/Improc/cornermatcher.cpp\
+	VWCore/Improc/correlate.cpp\
+	VWCore/Improc/distortimage.cpp\
+	VWCore/Improc/edgel.cpp\
+	VWCore/Improc/imagediff.cpp\
+	VWCore/Improc/imagepatch.cpp\
+	VWCore/Improc/improc_instantiate.cpp\
+	VWCore/Improc/improc_misc.cpp\
+	VWCore/Improc/integralimage.cpp\
+	VWCore/Improc/integralimagesquared.cpp\
+	VWCore/Improc/linefit.cpp\
+	VWCore/Improc/linesegfitted.cpp\
+	VWCore/Improc/parametricflow.cpp\
+	VWCore/Improc/plessey.cpp\
+	VWCore/Improc/plessey_bjt.cpp\
+	VWCore/Improc/plesseycorner.cpp\
+	VWCore/Improc/plesseyold.cpp\
+	VWCore/Improc/pyramid.cpp\
+	VWCore/Improc/pyramidcorrelate.cpp\
+	VWCore/Improc/sift.cpp\
+	VWCore/Improc/smooth.cpp\
+	VWCore/Improc/subsample.cpp\
+	VWCore/Improc/threshold.cpp\
+	VWCore/Improc/warp.cpp\
+	VWCore/Improc/scaleimage.cpp\
+	VWCore/Improc/warp_idr.cpp\
+	VWCore/Math/atan2.cpp\
+	VWCore/Math/chebyshevpolynomial.cpp\
+	VWCore/Math/kalmanfilter.cpp\
+	VWCore/Math/kalmanfilterwithinput.cpp\
+	VWCore/Math/nan.cpp\
+	VWCore/Math/pdfbase1d.cpp\
+	VWCore/Math/pdfbase2d.cpp\
+	VWCore/Math/pdfbase2diso.cpp\
+	VWCore/Math/pdfexponential.cpp\
+	VWCore/Math/pdfgaussian1d.cpp\
+	VWCore/Math/pdfgaussian2d.cpp\
+	VWCore/Math/pdfgaussian2diso.cpp\
+	VWCore/Math/pdfrayleigh.cpp\
+	VWCore/Math/pdfuniform1d.cpp\
+	VWCore/Sequencers/sequencerbase.cpp\
+	VWCore/Sequencers/sequencerfile.cpp\
+	VWCore/Sequencers/sequencermovie.cpp\
+	VWCore/Sequencers/thread.cpp\
+	VWCore/Utils/misc.cpp\
+	VWCore/Utils/timeops.cpp\
+	VWCore/Utils/timer.cpp\
+	VWFirewire/firewirecamera.cpp\
+	VWFirewire/sequencerfirewire.cpp\
+	VWGL/DisplayGL/awfedge.cpp\
+	VWGL/DisplayGL/awfface.cpp\
+	VWGL/DisplayGL/awfmaterial.cpp\
+	VWGL/DisplayGL/awfobject.cpp\
+	VWGL/DisplayGL/displayglcommon.cpp\
+	VWGL/DisplayGL/displayglut.cpp\
+	VWGL/DisplayGL/drawfirei.cpp\
+	VWGL/DisplayGL/drawgl.cpp\
+	VWGL/DisplayGL/drawgti.cpp\
+	VWGL/DisplayGL/drawthreequarterdesk.cpp\
+	VWGL/DisplayGL/drawvl500.cpp\
+	VWGL/DisplayGL/drawwero.cpp\
+	VWGL/DisplayGL/drawyorick811.cpp\
+	VWGL/DisplayGL/glutloop.cpp\
+	VWGL/DisplayGL/glutwindow.cpp\
+	VWGL/DisplayGL/threedtoolglcommon.cpp\
+	VWGL/DisplayGL/threedtoolglut.cpp\
+	VWGL/InterfaceGL/button.cpp\
+	VWGL/InterfaceGL/checkbox.cpp\
+	VWGL/InterfaceGL/container.cpp\
+	VWGL/InterfaceGL/displayglutewidget.cpp\
+	VWGL/InterfaceGL/frame.cpp\
+	VWGL/InterfaceGL/hbox.cpp\
+	VWGL/InterfaceGL/label.cpp\
+	VWGL/InterfaceGL/simplesequencerglute.cpp\
+	VWGL/InterfaceGL/slider.cpp\
+	VWGL/InterfaceGL/theme.cpp\
+	VWGL/InterfaceGL/threedtoolglutewidget.cpp\
+	VWGL/InterfaceGL/vbox.cpp\
+	VWGL/InterfaceGL/widget.cpp\
+	VWGL/InterfaceGL/window.cpp\
+	VWGTI/GTI/gti_main.cpp\
+	VWGTI/TransputerCode/channel.c\
+	VWGTI/TransputerCode/flag.c\
+	VWGTI/TransputerCode/gti.c\
+	VWGTI/TransputerCode/lowlev2.c\
+	VWGTI/TransputerCode/root.c\
+	VWGTI/TransputerCode/zero.c\
+	VWGTI/TransputerComms/b004link.c\
+	VWGTI/TransputerComms/channel.c\
+	VWGTI/TransputerComms/filec.c\
+	VWGTI/TransputerComms/hostc.c\
+	VWGTI/TransputerComms/iserv_main.c\
+	VWGTI/TransputerComms/iserver.c\
+	VWGTI/TransputerComms/serverc.c\
+	VWGTK/DisplayGTK/displaygtk.cpp\
+	VWGTK/DisplayGTK/displaygtkgl.cpp\
+	VWGTK/DisplayGTK/displaygtkglwidget.cpp\
+	VWGTK/DisplayGTK/displaygtkwidget.cpp\
+	VWGTK/DisplayGTK/draw3dgtkgl.cpp\
+	VWGTK/DisplayGTK/drawgtk.cpp\
+	VWGTK/DisplayGTK/threedtoolgtkglwidget.cpp\
+	VWGTK/InterfaceGTK/classifieruvgtk.cpp\
+	VWGTK/InterfaceGTK/firewirecameragtk.cpp\
+	VWGTK/InterfaceGTK/interfacegtk.cpp\
+	VWGTK/InterfaceGTK/plesseyparamsgtk.cpp\
+	VWGTK/InterfaceGTK/sequencerfilegtk.cpp\
+	VWGTK/InterfaceGTK/sequencerfirewiregtk.cpp\
+	VWGTK/InterfaceGTK/sequencermoviegtk.cpp\
+	VWGTK/InterfaceGTK/yorickgtk.cpp\
+	VWMeteor/sequencermeteor.cpp\
+	VWWx/DisplayWx/displaywxglwidget.cpp\
+	VWWx/DisplayWx/threedtoolwxglwidget.cpp\
+	VWWx/DisplayWx/vwdrawevent.cpp\
+	VWWx/DisplayWx/vwmouseevents.cpp\
+	VWWx/InterfaceWx/sequencerfilewx.cpp\
+	VWWx/InterfaceWx/evtsequencernewframe.cpp\
+	VWWx/InterfaceWx/sequencerfirewirewx.cpp\
+	VWX/Display/displayx.cpp\
+	VWX/Display/drawx.cpp\
+	VWX/Display/xloop.cpp\
+	VWXForms/Display/displayxforms.cpp\
+	VWXForms/Display/displayxformsform.c\
+	VWXForms/Display/drawxforms.cpp\
+	VWYorick/yorickmain.cpp\
+	VWYorick/yorickpmac.cpp
+
+module.pixmap.name=.
+module.pixmap.type=
+module.pixmap.files=\
+	Docs/HTML/Images/bottom_left.png\
+	Docs/HTML/Images/bottom_right.png\
+	Docs/HTML/Images/bw_background.png\
+	Docs/HTML/Images/doxygen.png\
+	Docs/HTML/Images/left_background.png\
+	Docs/HTML/Images/menu_blank_closed.png\
+	Docs/HTML/Images/menu_blank_open.png\
+	Docs/HTML/Images/menu_home_off.png\
+	Docs/HTML/Images/menu_home_on.png\
+	Docs/HTML/Images/menu_open_blank.png\
+	Docs/HTML/Images/menu_open_bottom.png\
+	Docs/HTML/Images/menu_open_divider.png\
+	Docs/HTML/Images/menu_reference-az_off.png\
+	Docs/HTML/Images/menu_reference-az_on.png\
+	Docs/HTML/Images/menu_reference-classes_off.png\
+	Docs/HTML/Images/top_background.png\
+	Docs/HTML/Images/menu_reference-classes_on.png\
+	Docs/HTML/Images/menu_reference-modules_off.png\
+	Docs/HTML/Images/menu_reference-modules_on.png\
+	Docs/HTML/Images/menu_reference-namespaces_off.png\
+	Docs/HTML/Images/menu_reference-namespaces_on.png\
+	Docs/HTML/Images/menu_reference-search_off.png\
+	Docs/HTML/Images/menu_reference-search_on.png\
+	Docs/HTML/Images/menu_reference_off.png\
+	Docs/HTML/Images/menu_reference_on.png\
+	Docs/HTML/Images/menu_userguide-copying_off.png\
+	Docs/HTML/Images/menu_userguide-copying_on.png\
+	Docs/HTML/Images/menu_userguide-developingvw_off.png\
+	Docs/HTML/Images/menu_userguide_off.png\
+	Docs/HTML/Images/menu_userguide-developingvw_on.png\
+	Docs/HTML/Images/menu_userguide-images_off.png\
+	Docs/HTML/Images/menu_userguide-images_on.png\
+	Docs/HTML/Images/menu_userguide-improc_off.png\
+	Docs/HTML/Images/menu_userguide-improc_on.png\
+	Docs/HTML/Images/menu_userguide-introduction_off.png\
+	Docs/HTML/Images/menu_userguide-introduction_on.png\
+	Docs/HTML/Images/menu_userguide-vnlvsvnl_off.png\
+	Docs/HTML/Images/menu_userguide-vnlvsvnl_on.png\
+	Docs/HTML/Images/menu_userguide_on.png\
+	Docs/HTML/Images/top_left.png\
+	Docs/HTML/Images/top_right.png\
+	Docs/HTML/Images/vw_logo.png
+
+module.data.name=.
+module.data.type=
+module.data.files=
+
+module.help.name=.
+module.help.type=
+module.help.files=
+
+module.doc.name=.
+module.doc.type=
+module.doc.files=\
+	AUTHORS\
+	INSTALL\
+	NEWS\
+	README\
+	Docs/Bits/footer.html\
+	Docs/Bits/header.html\
+	Docs/Bits/search.html\
+	Docs/HTML/hello.html\
+	Docs/HTML/index.html\
+	Docs/HTML/menu.html\
+	VNL/NetLib/README\
+	VWCore/COPYING\
+	VWCore/Graphics/README\
+	VWCore/IOBasics/paramfiles.README\
+	VWCore/Improc/plessey.README\
+	VWFirewire/COPYING\
+	VWGL/COPYING\
+	VWGTI/COPYING\
+	VWGTK/COPYING\
+	VWMeteor/COPYING\
+	VWWx/COPYING\
+	VWX/COPYING\
+	VWXForms/COPYING\
+	VWYorick/COPYING
+
+module.po.files=
+
+compiler.options.supports=
+compiler.options.include.paths=\
+	.\
+	..
+compiler.options.library.paths=
+compiler.options.libraries=
+compiler.options.libraries.selected=
+compiler.options.defines=\
+	HAVE_CONFIG_H
+compiler.options.defines.selected=
+compiler.options.warning.buttons=0 0 1 1 0 1 0 0 0 0 0 0 0 1 0 0 
+compiler.options.optimize.buttons=0 0 1 0 
+compiler.options.other.buttons=1 0 
+compiler.options.other.c.flags=
+compiler.options.other.l.flags=
+compiler.options.other.l.libs=
+
+project.src.paths=

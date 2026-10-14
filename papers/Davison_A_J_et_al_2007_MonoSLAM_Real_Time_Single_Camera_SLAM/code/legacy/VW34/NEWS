@@ -1,0 +1,21 @@
+This file describes the major changes and reorganisations only. Small feature 
+or API changes are described in the changelogs for individual files.
+
+Version 0.1:
+- first release
+
+
+Version 0.2:
+- Single VW library split into several libraries so that VWCore has few 
+  depends.
+
+Version 0.3:
+- Incorporation of reduced version of VNL into source tree to avoid the need 
+  for a complete VXL download just to compile VWCore.
+- VW-isation of VNL. VNL classes and functions now reside in VNL namespace and
+  are capitalised. eg. vnl_matrix_fixed<x,x,x> becomes VNL::MatrixFixed<x,x,x>.
+  (Note that the reduced VNL source has identical functionality, but no longer
+  depends on vcl,vsl and other parts of the vxl project, and instantiates 
+  slightly fewer types of matrix etc, so that the resulting library is 
+  marginally smaller.)
+- Seperation of the GL tools into a seperate library.

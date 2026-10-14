@@ -1,0 +1,14 @@
+/** 
+ * @page VWXPage VWX
+ *
+ * The X extension library provides displays that use only the raw XWindows libraries, 
+ * avoiding dependance on higher-level widget sets. In particular it provides
+ *
+ * Utility
+ *
+ *     - VW::XInit : Initialise XLib before use.
+ *     - VW::XLoop : Hand control over to the X event loop.
+ *
+ * Displays (2D)
+ *     - VW::DisplayX : An XWindows display
+ */

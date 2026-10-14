@@ -1,0 +1,340 @@
+A key component of any vision based application is the handling of
+images --- indeed many applications require little else. VW provides a series of classes in which various types of image
+can be stored. All the classes and functions described are included by
+using
+@example
+   #include <VW/image.h>
+@end example
+
+@ifnottex 
+@noindent Sections: 
+@end ifnottex
+@menu
+* What is a VW image?::
+* Image basics::
+* Manipulating the image::
+* Converting between image types::
+* Region of interest::
+@end menu
+
+
+@c ------------------------------------------------------------------- c@
+
+@node What is a VW image?, , ,Images
+@section What is a VW image?
+@cindex image
+
+All VW image classes store image data in the same way and provide the
+same set of operations. An image is considered to be a two-dimensional
+array of pixels stored in row-major form --- that is, stored along each
+row first:
+@example
+    pixel0   pixel1   pixel2   pixel3
+    pixel4   pixel5   pixel6   pixel7
+    pixel8   pixel9   pixel10  pixel11
+@end example
+note that counting starts from the top-left of the image, not the
+bottom-left as it would be on a graph.
+
+For a monochrome image each pixel is simply an intensity value, but for
+RGBA, YUVA or other formats, each pixel will contain several
+elements. The image and pixel classes are templated on the type of data
+stored so that you can produce a floating-point, double precision,
+integer or pretty much any other numeric type image. For example, if
+using @code{unsigned char} as the data type (which is a one-byte type)
+then a mono pixel corresponds to a single byte in memory, whereas an
+RGBA pixel will be four (R + G + B + alpha).
+
+
+
+@c ------------------------------------------------------------------- c@
+
+@node Image basics, , ,Images
+@section Image basics
+@cindex image 
+@cindex pixel  
+@tindex ImageMono  
+@tindex ImageRGB  
+@tindex ImageYUV  
+@tindex ImageHSV
+@tindex PixelMono  
+@tindex PixelRGB  
+@tindex PixelYUV  
+@tindex PixelHSV
+
+@subsection Types of image
+
+VW currently supports the following image types:
+@table @code
+@item ImageMono
+a monochrome image with a single intensity value per pixel
+
+@item ImageRGB
+a colour image with red green and blue stored seperately. A fourth
+value, for alpha, is also stored, ensuring that the pixels lie on 4-byte
+word boundaries in memory.
+
+@item ImageYUV
+a colour image with intensity (Y) blue-yellow chromacity (U) and
+red-green chromacity (V) stored separately. A fourth
+value, for alpha, is also stored, ensuring that the pixels lie on 4-byte
+word boundaries in memory.
+
+@item ImageHSV
+a colour image with hue (H) colour saturation (S) and
+intensity value (V) stored separately. A fourth
+value, for alpha, is also stored, ensuring that the pixels lie on 4-byte
+word boundaries in memory. @strong{This image type is still
+experimental, and should not be trusted with important data.}
+
+@end table
+
+Each of these image types has a corresponding pixel type for storing the
+image data, ie. @code{PixelMono}, @code{PixelRGB}, @code{PixelYUV} and @code{PixelHSV}. 
+
+@subsection Creating an image
+@cindex image constructor
+@findex GetWidth
+@findex GetHeight
+@findex IsAlloced
+
+The VW images live in the VW namespace and can be created either with or
+without allocating the size of the image:
+@example
+   VW::ImageRGB<unsigned char> my_rgb_image(320,240);
+   VW::ImageMono<float> my_mono_image;
+@end example
+note the data type template specifications @code{<unsigned char>} and
+@code{<float>} and that the RGB image is told to reserve memory for a width of 320 pixels and
+height of 240. In the case of the mono image, the size can be specified
+later using
+@example
+   my_mono_image.AllocImageData(320,240);
+@end example
+which reserves the right amount of memory for this image, or will be
+determined automatically when loading an image.
+
+You can test whether an image has had its data allocated using
+@example
+   if ( my_mono_image.IsAlloced() ) @{...@}
+@end example
+and once an image is allocated, the size can be recovered at any time
+@example
+   unsigned int w = my_mono_image.GetWidth();
+   unsigned int h = my_mono_image.GetHeight();
+@end example
+
+@subsection Freeing an image
+@findex FreeImageData
+
+Once an image has been allocated (whether on construction or
+afterwards), its data can be freed and the memory released at any time
+using 
+@example
+   my_image.FreeImageData();
+@end example
+This allows the data to be
+reallocated later at a different size.
+
+
+@subsection Reading and writing
+@cindex image reading
+@cindex image loading
+@cindex image writing
+@cindex image saving
+@cindex PNG
+@cindex JPEG
+@cindex GIF
+@cindex TIFF
+@cindex PGM
+@cindex PPM
+@cindex MIT
+@cindex PS
+@cindex EPS
+@cindex EPSI
+@findex ReadImage
+@findex WriteImage
+
+The image classes are only able to open the @code{PGM} (mono) and @code{PPM}
+(colour) image formats natively. In order to load and save other formats
+image input and output makes use of operating system functions. On Linux the
+@uref{http://netpbm.sourceforge.net,NetPBM} graphics software is used, allowing
+IO of @code{PGM, PPM, JPEG, PNG, GIF,
+TIFF, MIT, PS, EPS} and @code{EPSI} formats, and on Windows the WinGDI interface is used, allowing use of all natively supported formats (these will vary according to which image format libraries are registered with the system).
+
+For an image that has its memory allocated, the size of the stored image
+must match the image dimensions. If the size hasn't yet been allocated,
+the image will take the size of the stored image. Loading any image
+format takes the form
+@example
+   my_image.ReadImage("some_image.jpeg");
+@end example
+The image type is determined from the filename extension (how very
+Microsoft).
+
+Storing of an image is similarly simple
+@example
+   my_image.WriteImage("another_image.png");
+@end example
+
+Both loading and saving involve some conversions unless PPMs/PGMs are used. If you need fast IO, and CPU usage is
+more important than disk bandwidth these native formats should be used.
+
+
+@c ------------------------------------------------------------------- c@
+
+@node Manipulating the image, , ,Images
+@section Manipulating the image
+
+There are a number of ways to access the image data according to how
+important speed is.
+
+@subsection The easy way
+@findex GetPixel
+@findex SetPixel
+@findex ScaleIntensity
+
+The first (and most obvious) method to get/set a pixel is to use the
+@code{GetPixel(x,y)} and @code{SetPixel(x,y,p)} functions. For example, to scan an
+entire RGB image halving the intensities
+@example
+   for (unsigned int y = 0; y < my_rgb_image.GetHeight(); y++) @{
+      for (unsigned int x = 0; x < my_rgb_image.GetWidth(); x++) @{
+
+         VW::PixelRGB<unsigned char> p = my_rgb_image.GetPixel(x,y);
+         p.ScaleIntensitiy(0.5);
+         my_rgb_image.SetPixel(x,y,p);
+
+      @}
+   @}
+@end example
+
+To actually access the raw data, the pixel classes provide public access
+to thier data, whether its @code{r}, @code{g}, @code{b}, @code{alpha}
+(RGB),  @code{y}, @code{u}, @code{v}, @code{alpha} (YUV) or @code{y}
+(Mono).
+
+@subsection The fast way
+
+The second approach uses pointers to the start of each row, and pointer
+arithmetic to navigate along the row. Each image
+class provides three type definitions:
+@table @code
+@item DataType 
+The type of the pixel elements (eg @code{unsigned char})
+
+@item PixelType 
+The type of the pixel class (eg @code{PixelRGB<unsigned char>})
+
+@item PixelPtr
+The type of a pointer to the pixel class (eg @code{PixelRGB<unsigned char>*})
+
+@end table
+and @code{my_image.GetRowStart(y)} returns a @code{PixelPtr} to the
+start of row @code{y}. The following code is functionally identical to
+the above example, but usually faster
+@example
+   for (unsigned int y = 0; y < my_rgb_image.GetHeight(); y++) @{
+      typename VW::ImageRGB<unsigned char>::PixelPtr p = my_rgb_image.GetRowStart(y);
+
+      for (unsigned int x = 0; x < my_rgb_image.GetWidth(); x++,p++) @{
+
+         p->ScaleIntensitiy(0.5);
+
+      @}
+   @}
+@end example
+Note that in this case @code{p} points to the pixel in the image, not a
+copy of it as previously.
+
+@subsection Playing with colours
+
+Finally in this section, here is an example that manipulates the
+underlying colour data in each pixel --- in this case swapping red and
+blue for that psychadelic feel:
+@example
+   for (unsigned int y = 0; y < my_rgb_image.GetHeight(); y++) @{
+      typename VW::ImageRGB<unsigned char>::PixelPtr p = my_rgb_image.GetRowStart(y);
+
+      for (unsigned int x = 0; x < my_rgb_image.GetWidth(); x++,p++) @{
+
+         unsigned char t = p->r;
+         p->r = p->b;
+         p->b = t;
+
+      @}
+   @}
+@end example
+
+
+
+@c ------------------------------------------------------------------- c@
+
+@node Converting between image types, , ,Images
+@section Converting between image types
+@findex ImageCopy
+
+The @code{VW::ImageCopy} functions provide methods for copying and
+converting images. The function is templated on the two image types and
+requires two equal-sized images (or an output image that has not yet had
+its data allocated). For example
+@multitable  @columnfractions .5 .5
+@item @code{VW::ImageCopy(my_mono_image, my_rgb_image);}
+@tab copies a monochrome image into an RGB image, setting each of RGB to
+the mono value.
+
+@item @code{VW::ImageCopy(my_rgb_image, my_yuv_image);}
+@tab converts an RGB image into a YUV image.
+
+@item @code{VW::ImageCopy(mono_uchar_image, mono_float_image);}
+@tab converts an unsigned char type mono image into a floating point one.
+
+@end multitable
+
+Note that it is possible to convert @emph{either} the pixel type (YUV,RGB etc) @emph{or} the data type (unsigned char, float etc), but not both at once.
+
+@subsection A note about YUV
+
+Note that the balance of colour information in YUV is quite different
+from RGB, since blue
+is under-represented and green is over-represented when compared to the RGB
+space. For example, using the standard conversion to YUV the red
+information remains at about 100%, the green 140% and blue 60% (which is why chroma-keying on
+video is always done against green backgrounds, whereas for films it is
+done against blue). Together with rounding error, this means that
+converting from RGB to YUV and back again invariably results in fairly
+poor colour representation in the image, with blues particularly vulnerable.
+
+@c ------------------------------------------------------------------- c@
+
+@node Region of interest, , ,Images
+@section Region of interest
+@cindex Region of interest
+@tindex ROI
+@findex GetROI
+@findex Shrink
+@findex GetROIRowStart
+
+All images contain a "region of interest" (ROI), that is, a record of how much of the image is valid. Many operations such as convolution give a resulting image that is smaller than the original (eg. by half the convolution kernel's size), and subsequent processing should only look at data inside the ROI.
+
+An image's ROI is stored as a class which provides various functions for growing, shrinking and changing the size of the ROI. eg:
+
+@example
+   my_image.GetROI().Shrink(2);
+@end example
+
+would shrink the ROI of @code{my_image} by 2. To process only the ROI of an image, one might do as follows:
+
+@example
+   const VW::ROI roi = my_rgb_image.GetROI();
+   for (unsigned int y = roi.Top(); y < roi.Bottom(); y++) @{
+      typename VW::ImageRGB<unsigned char>::PixelPtr p = my_rgb_image.GetROIRowStart(y);
+
+      for (unsigned int x = roi.Left(); x < roi.Right(); x++,p++) @{
+
+         // Process pixel p
+	 ...
+
+      @}
+   @}
+@end example

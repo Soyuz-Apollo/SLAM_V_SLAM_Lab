@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Sidebar: Senders and Receivers
+</h2>
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 3</a>
+</td>
+</tr></table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+This sidebar gives some additional details on the <tt>TSender</tt> and <tt>TReceiver</tt> classes that are behind menu and idle events. This information isn't strictly necessary for writing programs based on GLOW, but is probably helpful for understanding what's going on behind the scenes.
+</p>
+<p>
+<tt>TSender</tt> and <tt>TReceiver</tt> implement a technique commonly known as a broadcaster/listener system. In such a system, a broadcaster object may be connected, or bound, to one or more listener objects. At any time, the broadcaster may be instructed to broadcast a message object to all of its listeners. This causes some method on each listener to be invoked with that message as a parameter-- in this case, the method is <tt>OnMessage()</tt>. Such a system is commonly used for reporting events in an object-oriented model.
+</p>
+<p>
+The classes <tt>TSender</tt> and <tt>TReceiver</tt> are actually templates; they are templated on the type of message they expect to send or receive. This allows compile-time typechecking. A sender may be bound only to receivers templated on the same type, and only messages of that type may be sent through that sender.
+</p>
+<p>
+<tt>TSender</tt> and <tt>TReceiver</tt> also automatically sever connections when one of the endpoints is destructed. That is, if a receiver is deleted, it automatically notifies any senders connected to it, and those senders will remove it from their connection lists. This is a common service provided by most broadcaster/listener systems.
+</p>
+<p>
+GLOW uses senders and receivers to report most high-level events, including menu events, idle events, timer events, and widget-related events like button presses. To receive these events, you'll need to subclass the appropriate receiver class and implement its <tt>OnMessage</tt> method. You may also use <tt>TSender</tt> and <tt>TReceiver</tt> directly to handle some of your own inter-object communication needs, as described in the next section.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Using senders and receivers</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+To use senders and receivers in your application, first you need to compile <tt>glowSenderReceiver.cpp</tt>, and include <tt>glowSenderReceiver.h</tt> in your source file. Next decide on a type to use as a message. If you use an aggregate type like a class, it is probably a good idea to send a pointer or a reference to it as a message, rather than its entire value. Let's suppose you have a struct <tt>MyMessageType</tt>, and you're going to send a reference as the message type.
+</p>
+<blockquote>
+<tt><pre>struct MyMessageType {
+    int data1;
+    std::string data2;
+};</pre></tt>
+</blockquote>
+
+<p>
+<b>Writing a receiver</b>
+</p>
+<p>
+First, you need to write a receiver class for your message. Subclass <tt>TReceiver&lt;MyMessageType&&gt;</tt>, and implement the method <tt>OnMessage(MyMessageType&)</tt>. This method will be called whenever the receiver receives a message. Notice that, since we decided to use a non-const reference as our message type, the receiver can modify the message data.
+</p>
+<blockquote>
+<tt><pre>class MyReceiver : public TReceiver&lt;MyMessageType&&gt;{
+    virtual void OnMessage(MyMessageType&);
+};
+
+void MyReceiver::OnMessage(MyMessageType& message) {
+    std::cout &lt;&lt; "Received message" &lt;&lt; std::endl;
+    std::cout &lt;&lt; " data1 = " &lt;&lt; message.data1 &lt;&lt; std::endl;
+    std::cout &lt;&lt; " data2 = " &lt;&lt; message.data2 &lt;&lt; std::endl;
+    ++message.data1;
+}</pre></tt>
+</blockquote>
+
+<p>
+<b>Creating a network of senders and receivers</b>
+</p>
+<p>
+Next, you need to create sender and receiver objects. Just make an object of type <tt>TSender&lt;MyMessageType&&gt;</tt> and an object of type <tt>MyReceiver</tt>. You can also make a class that inherits from <tt>TSender&lt;MyMessageType&&gt;</tt>.
+</p>
+<blockquote>
+<tt><pre>TSender&lt;MyMessageType&&gt; mysender;
+MyReceiver myreceiver;</pre></tt>
+</blockquote>
+<p>
+Before you can send messages, you need to bind the sender to the receiver. To do this, call the <tt>Bind()</tt> method on your sender, and give it a pointer to the receiver. You can also sever the connection by calling the <tt>Unbind()</tt> method.
+</p>
+<blockquote>
+<tt><pre>mysender.Bind(&myreceiver);</pre></tt>
+</blockquote>
+
+<p>
+<b>Sending messages</b>
+</p>
+<p>
+To actually send a message, just call the <tt>Send()</tt> method on the sender, and give it the message. For example,
+</p>
+<blockquote>
+<tt><pre>MyMessage message;
+message.data1 = 100;
+message.data2 = "Hello, world!";
+mysender.Send(message);</pre></tt>
+</blockquote>
+<p>
+After sending the message, if we query the value of <tt>message.data1</tt>, we'll find that it has been incremented by the receiver. You can also bind a sender to any number of receivers. For example, let's create two more receivers and bind the sender to them. The order in which the receivers receive the message you send is the same order in which the receivers were bound.
+</p>
+<blockquote>
+<tt><pre>class MyOtherReceiver : public TReceiver&lt;MyMessageType&&gt;{
+    virtual void OnMessage(MyMessageType&);
+};
+
+void MyOtherReceiver::OnMessage(MyMessageType& message) {
+    std::cout &lt;&lt; "Received message with other" &lt;&lt; std::endl;
+    std::cout &lt;&lt; " data1 = " &lt;&lt; message.data1 &lt;&lt; std::endl;
+    std::cout &lt;&lt; " data2 = " &lt;&lt; message.data2 &lt;&lt; std::endl;
+    --message.data1;
+}
+
+MyOtherReceiver myreceiver2;
+MyReceiver* myreceiver3ptr = new MyReceiver;
+mysender.Bind(&myreceiver2);
+mysender.Bind(myreceiver3ptr);
+message.data1 = 100;
+message.data2 = "Hello, world!";
+mysender.Send(message);
+std::cout &lt;&lt; "data1 is now " &lt;&lt; message.data1 &lt;&lt; std::endl;</pre></tt>
+</blockquote>
+<p>
+Running this should cause the receivers to receive the message in the order <tt>myreceiver</tt>, <tt>myreceiver2</tt>, <tt>myreceiver3ptr</tt>. This should generate this output:
+</p>
+<blockquote>
+<tt><pre>Received message
+ data1 = 100
+ data2 = Hello, world!
+Received message with other
+ data1 = 101
+ data2 = Hello, world!
+Received message
+ data1 = 100
+ data2 = Hello, world!
+data1 is now 101</pre></tt>
+</blockquote>
+
+<p>
+<b>Additional features</b>
+</p>
+<p>
+There are several other methods you can use to manage connections. The <tt>IsBoundTo()</tt> method of <tt>TSender</tt> lets you query whether the sender is bound to a certain receiver. <tt>NumReceivers()</tt> returns the number of receivers a sender is bound to. <tt>UnbindAll()</tt> severs all connections with this sender. Calling <tt>NumSenders()</tt> on a receiver will return the number of senders bound to that receiver.
+</p>
+<p>
+Senders also automatically detect if their receivers are deleted. If you <tt>delete myreceiver3ptr;</tt>, then calling <tt>mysender.NumReceivers()</tt> will return 2.
+</p>
+<p>
+You may also send a message to a single receiver without explicitly binding. To do this, use the static version of the <tt>Send()</tt> method, as in:
+</p>
+<blockquote>
+<tt><pre>TSender&lt;MyMessage&&gt;::Send(myreceiver3ptr, message);</pre></tt>
+</blockquote>
+
+</blockquote>
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 3</a>
+</td>
+</tr></table>
+</p>
+
+
+<hr size=2>
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

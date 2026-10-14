@@ -1,0 +1,7 @@
+/** 
+ * @page VWYorickPage VWYorick
+ *
+ * The Yorick extension library provides a simple class which allows sending and 
+ * receiveing of axis angles to the Yorick series of active stereo platforms.
+ *
+ */

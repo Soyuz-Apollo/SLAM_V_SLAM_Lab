@@ -1,0 +1,306 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Lesson 1: A Mandelbrot Set viewer
+</h2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson0/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson0/index.html">Lesson 0</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson2/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson2/index.html">Lesson 2</a>
+</td>
+</tr></table>
+</p>
+
+<p>
+<table cellpadding=3 cellspacing=5 border=6>
+<tr>
+<th>Code</th>
+<th>Reference</th>
+<th>Sidebars</th>
+</tr>
+<tr>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelglow.cpp">mandelglow.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.h">mandeldata.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.cpp">mandeldata.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.h">mandelwind.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.cpp">mandelwind.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="Makefile">Makefile</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/Glow.html">class Glow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowWindow.html">class GlowWindow</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="side_mandelbrot.html">About the Mandelbrot Set</a>
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+This lesson introduces some of the basic concepts of GLOW, and steps through writing a simple program that views the Mandelbrot Set. At the end of this lesson, you should have an idea of the basic structure of a GLOW-based program.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>The Mandelbrot Set</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<img src="mandel_small.jpg" border=0 align=right hspace=10>
+The Mandelbrot Set is a well-known object in mathematics, a beautiful fractal-like structure that results from performing a simple computation. You can see a picture of it to the right, an interesting shape to be sure, but the real beauty of the set appears when you magnify areas around the edges of the black area. An almost infinite variety of fractal shapes appear, constantly changing and intermixing, and ever more intricate as you increase the magnification.
+</p>
+<p>
+The math behind generating the Mandelbrot Set is fairly straightforward. I discuss it briefly in the sidebar "About the Mandelbrot Set." For the purposes of this lesson, however, I've written a simple class that performs the computation for us; we'll use it as a black box for now. You can find this class in the code files <tt>mandeldata.h</tt> and <tt>mandeldata.cpp</tt>. It computes a raw image, as an array of integer values, of any area of the Mandelbrot Set. A value of 0 means the point is in the set, traditionally denoted by coloring a pixel black. A nonzero value indicates a point outside the set. Typically, images generated of the Mandelbrot Set will set pixels different colors depending on the exact value. For simplicity, we will just color all such pixels red for now.
+<br clear=right>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandeldata.h">mandeldata.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandeldata.cpp">mandeldata.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Sidebar: <b><a href="side_mandelbrot.html">About the Mandelbrot Set</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Making a window</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Now, let's make a window that will display an image of the Mandelbrot set. To make a window, we subclass the class <tt>GlowWindow</tt>, write a constructor, and override virtual methods to produce our desired behavior.
+</p>
+<blockquote>
+<pre>class MandelWind : public GlowWindow
+{ ...
+    virtual void OnEndPaint();
+  ...</pre>
+</blockquote>
+<p>
+Look at the class declaration for class <tt>MandelWind</tt>, located in the file <tt>mandelwind.h</tt>. It incorporates two data objects: a pointer to a <tt>MandelData</tt> object to handle calculation of the raw Mandelbrot data, and a member of type <tt>unsigned char*</tt>, which will point to the actual image we can render using <tt>glDrawPixels()</tt>. It also has a constructor. Note especially the existence of the virtual method <tt>OnEndPaint()</tt>. This is a method that GLOW calls when it needs to update (paint) the window. We will write this method to draw the image of the Mandelbrot Set.
+</p>
+
+<p>
+<b>The MandelWind constructor</b>
+</p>
+<p>
+The actual method implementations are located in the file <tt>mandelwind.cpp</tt>. First, let's look at the constructor. It first gets the pointer to the given <tt>MandelData</tt> object, and makes sure it is recalculated. It then computes an image based on the raw Mandelbrot data, by stepping through the raw data, and coloring in-set pixels (raw data == 0) black, and out-of-set pixels red.
+</p>
+<blockquote>
+<pre>MandelWind::MandelWind(MandelData* data) :
+// We first construct the window itself.
+GlowWindow("Mandelglow", GlowWindow::autoPosition, GlowWindow::autoPosition,
+    data-&gt;Width(), data-&gt;Height(), Glow::rgbBuffer | Glow::doubleBuffer,
+    Glow::noEvents)
+{ ...</pre>
+</blockquote>
+<p>
+Note, though, the very beginning of the constructor. It calls the constructor of its superclass, <tt>GlowWindow</tt>. This constructor sets up the window itself. The parameters are as follows: window title, x-position, y-position, window width, window height, type of frame buffer to use, and events to report. For the position parameters, note the use of the constant <tt>GlowWindow::autoPosition</tt>, which causes the window manager to position the window automatically according to its preferred heuristics. Width and height are taken from the width and height of the actual data. We aren't going to respond to any events for now, so we pass <tt>Glow::noEvents</tt> for the event mask (though that will change later). And finally, we'll use an RGB color buffer, double-buffered for the frame buffer. You can find the constants used in the last two parameters in the class <tt>Glow</tt>.
+</p>
+<p>
+Calling the constructor for <tt>GlowWindow</tt> automatically creates a toplevel GLUT window, with a single function call. You don't need to call all the GLUT functions describing the window, and you don't need to provide callbacks-- GLOW does that automatically.
+</p>
+
+<p>
+<b>The MandelWind destructor</b>
+</p>
+<p>
+Let's take a brief look at the destructor for MandelWind. The destructor will never actually get called, since the window is never actually deleted-- it doesn't go away until the process terminates. However, it is instructive to know what goes on when a window is destructed.
+</p>
+<p>
+Our destructor simply deletes the <tt>MandelData</tt> object used by the window, as well as the image storage we allocated in the constructor.
+</p>
+<blockquote>
+<pre>MandelWind::~MandelWind()
+{
+    delete _data;
+    delete _image;
+}</pre>
+</blockquote>
+<p>
+When the base class, <tt>GlowWindow</tt>, is destructed, it automatically dismantles and removes the GLUT window and all the related storage. Therefore, if you want to destroy a GLOW window, you can simply delete the object.
+</p>
+<p>
+It turns out, however, that there are subtle reasons why directly deleting a window object <i>may</i> be dangerous. For example, sometimes you may be tempted to delete the window from within one of its methods. Doing so not only carries the usual warnings about using "<tt>delete this;</tt>" but also can potentially cause crashes if an event is being handled from an object contained in the window. We'll look more closely at this issue in a later lesson. For now, however, I recommend that, instead of <tt>delete</tt>ing a window object, call the <tt>Close()</tt> method. That does a deferred-delete; the object isn't deleted immediately, but is marked "to-be-deleted", and GLOW will actually delete it later when it is safe.
+</p>
+
+<p>
+<b>The MandelWind redraw method</b>
+</p>
+<blockquote>
+<pre>void MandelWind::OnEndPaint()
+{
+    // Put OpenGL calls here...
+}</pre>
+</blockquote>
+<p>
+Now let's look at the next function, <tt>OnEndPaint()</tt>. GLOW calls this method whenever the window needs to be redrawn. For now, don't worry about the "End" part-- that will become clear in a later lesson. (Yes, there is also an <tt>OnBeginPaint()</tt> method.) The method is pretty simple: set up the raster position and call <tt>glDrawPixels()</tt> to draw the image. GLOW automatically calls <tt>glClear()</tt> to clear the frame buffer to black for you, so you do not need to do it yourself (although you can change this behavior if you want). GLOW also handles swapping buffers automatically when you are using a double-buffered window (although this behavior can also be changed if you want).
+</p>
+<p>
+That's it! We've now implemented a window that displays the Mandelbrot Set! Now, how do we use it?
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.h">mandelwind.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWindow.html">class GlowWindow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Glow.html">class Glow</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Putting it together</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Let's look at the main program, in the file <tt>mandelglow.cpp</tt>. There's just one function here, <tt>main()</tt>. It's pretty short. First, after a little salutation on the command line, we call the method <tt>Glow::Init()</tt>, giving it <tt>argc</tt> and <tt>argv</tt>.
+</p>
+<blockquote>
+<pre>Glow::Init(argc, argv);</pre>
+</blockquote>
+<p>
+This method performs one-time initialization of the GLOW system, including automatically calling <tt>glutInit()</tt>. It should be called at the start of every GLOW program. Next, we instantiate our window, giving it a new Mandelbrot data object to work with.
+</p>
+<blockquote>
+<pre>new MandelWind(new MandelData);</pre>
+</blockquote>
+<p>
+Finally, we call <tt>Glow::MainLoop()</tt>, which enters the main event loop (essentially, it calls <tt>glutMainLoop()</tt>).
+</p>
+<blockquote>
+<pre>Glow::MainLoop();</pre>
+</blockquote>
+<p>
+And we're done! If you compile and run the program, you can see that it does exactly what we expect. It creates a window, containing an image of the Mandelbrot set. The window may take a few moments to pop up, because the program first spends time computing the Mandelbrot image (in the constructor for <tt>MandelWind</tt>, remember?) You may be able to exit the program by closing the window using the window manager's close operation. (Under Motif-like window systems, double-click the box in the upper left corner.) If you can't, then you'll need to kill it using your operating system's kill command.
+</p>
+<p>
+Note that, unlike GLUT's API, your GLOW window is a C++ object. That means you can instantiate two or more of them, just by repeating the appropriate line in <tt>main()</tt>. (Try it!) The GLOW system automatically keeps track of the different windows, and routes redraw events to the appropriate object. You don't need to juggle callbacks or keep track of window IDs.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelglow.cpp">mandelglow.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Glow.html">class Glow</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Where to go from here</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+We've now seen how to create a window, and how to draw into it. You can put essentially any OpenGL drawing commands into <tt>OnEndPaint()</tt>, including 3D primitives, display lists, and so forth. Try adding additional windows to the program, containing different drawings.
+</p>
+<p>
+You may also notice that it is possible to resize the window. If you do, the mandelbrot image remains the same size, and stays anchored to the lower left, any blank space being filled with black. There are certainly nicer ways to handle window resizing. One way is to use the class <tt>GlowFixedSizeWindow</tt>, which is a window that cannot be resized. (Technically, it's still possible to resize the window, since GLUT doesn't actually allow you to create a non-resizable window, but whenever you do resize a <tt>GlowFixedSizeWindow</tt>, it immediately snaps back to the original size.) A better way, perhaps, is to detect the window resize, and adjust the Mandelbrot image accordingly so it fills the window. We'll look at how to do this in the next lesson.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowFixedSizeWindow.html">class GlowFixedSizeWindow</a></b>
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson0/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson0/index.html">Lesson 0</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson2/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson2/index.html">Lesson 2</a>
+</td>
+</tr></table>
+</p>
+
+
+
+
+<hr size=2>
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

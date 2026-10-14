@@ -1,0 +1,26 @@
+#!/bin/bash
+
+## first test that automake version is ok
+if test -x `which automake`; then
+    version=`automake --version | head -n 1 | awk '{print $NF}'`
+    automake_major_version=`echo $version | sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+    automake_minor_version=`echo $version | sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+    automake_micro_version=`echo $version | sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+    if test $automake_major_version -lt 1; then
+	echo automake version 1.7 or newer required
+	exit 1
+    fi
+    if test $automake_major_version -eq 1 \
+	-a $automake_minor_version -lt 7; then
+	echo automake version 1.7 or newer required
+	exit 1
+    fi
+
+    echo automake version $automake_major_version.$automake_minor_version found
+fi
+
+echo aclocal && aclocal -I . &&
+echo autoheader && autoheader &&
+echo automake && automake -a &&
+echo autoconf && autoconf
+#echo ./configure --prefix=`pwd` && ./configure --prefix=`pwd`

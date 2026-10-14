@@ -1,0 +1,40 @@
+The VW libraries were originally designed for standards compliant compilers in a strict POSIX environment. Despite this, some effort has been made to accomodate the MS Windows operating system and the Visual C++ compiler. As we are working in the 21st century, you will need version 2003 (7) or newer. There is little or no hope of it working with Visual C++ 6 since templates support is threadbare (to be extremely polite - non-existant is closer to the truth).
+
+
+@section Prerequisites
+
+To compile the VW tree you will need:
+
+@itemize @bullet
+   @item A version of jpeg.lib and jpegd.lib (ie versions compiled for release and debug mode, and both compiled multithreaded).
+   @item glut32.lib and glut.h.
+@end itemize
+
+Note that both of these must be installed on the standard path (eg in C:Program Files\Microsoft Visual Studio .NET 2003\Vc7\lib and include) and glut.h must be installed such that it can be found by including GL/glut.h. Note that these are pretty standard libraries and may already be on your system.
+
+
+
+@section Compiling
+
+With the pre-requisites in place, load up the "solution" file and build it.
+
+
+@section Making your own VW applications
+
+Some care must be taken when compiling apps that want to link against VW. Most notably you must:
+@itemize @bullet
+   @item Disable pre-compiled headers
+   @item Add the VW include and lib (lib-i686) directories to the include and link preferences
+   @item Set the compile mode to multi-threaded debug
+@end itemize
+
+You should also add additional dependencies as follows:
+@itemize @bullet
+   @item VNL.lib for a maths-only app
+   @item VWCore.lib VNL.lib jpegd.lib for a basic VW app
+   @item VWGL.lib VWCore.lib VNL.lib jpegd.lib for a glut VW app
+   @item VWWx.lib VWGL.lib VWCore.lib VNL.lib jpegd.lib for a WxWidgets VW app
+@end itemize
+
+
+It can be extremely fiddly to create a solution from scratch that exactly matches the VW library compile environment, so use one of the template solutions as a starting point if you can.

@@ -1,0 +1,4 @@
+/**
+ * @defgroup MathsStuff
+ * @brief    Misc functions and classes for maths that isn't part of VNL
+ */

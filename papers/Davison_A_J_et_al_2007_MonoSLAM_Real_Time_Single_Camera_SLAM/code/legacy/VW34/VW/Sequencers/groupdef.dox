@@ -1,0 +1,10 @@
+/**
+ * @defgroup CoreSequencers
+ * @brief The sequencer base class and simple file-based sequencing.
+ *
+ *
+ */
+/**
+ * @defgroup Sequencers
+ * @brief    Classes for retrieving sequences of images from cameras or files.
+ */

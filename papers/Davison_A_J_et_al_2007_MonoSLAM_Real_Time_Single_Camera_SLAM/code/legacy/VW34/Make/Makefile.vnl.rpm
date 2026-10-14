@@ -1,0 +1,20 @@
+VNLRPMNAME = VNL
+
+# The RPM requires uptodate tgz file
+vnlrpm: ~/.rpmmacros rpmcommon
+#   1. Create list of files to include in rpm
+	cd $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/VNL; \
+	make vnlheaders; \
+	cd ../include; \
+	ls -1 netlib.h VNL/*.h VNL/*.tpp VNL/algo/*.h VNL/algo/*.tpp > tmp.txt; \
+	/bin/sed -e 's/^/\/usr\/include\//' tmp.txt > headerfiles.txt; \
+#   2. Set the version string in the spec file and cat together
+	/bin/sed -e 's/--VERSION--/'$(VERSION)'/' -e 's/--RELEASE--/'$(TODAY)'/' $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)//$(VNLRPMNAME)/$(VNLRPMNAME).spec > $(RPMBUILDROOT)/SPEC/$(VNLRPMNAME)-$(VERSION)-$(TODAY).spec.header; \
+	cat $(RPMBUILDROOT)/SPEC/$(VNLRPMNAME)-$(VERSION)-$(TODAY).spec.header $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/headerfiles.txt > $(RPMBUILDROOT)/SPEC/$(VNLRPMNAME)-$(VERSION)-$(TODAY).spec; \
+#   3. make the RPM and copy it back
+	cd $(RPMBUILDROOT)/SPEC; \
+	rpmbuild -ba -vv $(VNLRPMNAME)-$(VERSION)-$(TODAY).spec;
+	cp $(RPMBUILDROOT)/RPMS/i386/$(VNLRPMNAME)-$(VERSION)-$(TODAY).i386.rpm $(VWDIR)
+	cp $(RPMBUILDROOT)/BUILD/VW-$(VERSION)/$(VNLRPMNAME)-$(VERSION)-$(TODAY).* $(VWDIR)
+	more $(VNLRPMNAME)-$(VERSION)-$(TODAY).report
+

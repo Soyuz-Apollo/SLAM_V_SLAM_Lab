@@ -1,0 +1,40 @@
+/** 
+ * @page VWCorePage VWCore
+ *
+ * The Core Vision Library forms the heart of VW, providing image
+ * classes, image IO, feature extraction and geometric
+ * calculations. Also, the core library contains abstract base classes for the sequencers 
+ * and displays which are implemented in the more specific libraries. As it is the largest
+ * part of the library collection, the main user oriented bits are collected into modules 
+ * as follows:
+ *
+ *     - \link Image Image \endlink :
+ *             Image classes, file IO, conversion from raw data and
+ *             colour model conversions.
+ *
+ *     - \link ImageProcessing ImageProcessing \endlink :
+ *             Operations on images (eg convolution, feature detection etc).
+ *  
+ *     - \link GeometricObjects GeometricObjects \endlink : 
+ *             Objects to represent geometric constructs such
+ *             as points, lines, rotations, multi-view relations etc.
+ *
+ *     - \link GeometricAlgorithms GeometricAlgorithms \endlink : 
+ *             Algorithms and operations on geometric objects, such as
+ *             calculating image-relations.
+ *
+ *     - \link CoreSequencers CoreSequencers \endlink : 
+ *             The base class and basic file-based sequencers. Sequencers
+ *             provide stepped or continuous retrieval of sequential
+ *             images.
+ *
+ *     - \link CoreGraphics CoreGraphics \endlink : 
+ *             The base classes for displays and basic (non-optimised)
+ *             drawing functions. Also, functions for drawing things
+ *             on images (including other images - ie. image compositing).
+ *
+ *     - \link MathsStuff MathsStuff \endlink : 
+ *             Some mathematical utility functions and classes, such as
+ *             random number generation, probability densities, 
+ *             Kalman filtering.
+ */

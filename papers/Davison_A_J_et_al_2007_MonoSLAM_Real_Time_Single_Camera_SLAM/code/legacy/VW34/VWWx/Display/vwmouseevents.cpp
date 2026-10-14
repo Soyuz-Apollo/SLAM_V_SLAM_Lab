@@ -1,0 +1,8 @@
+#include "vwmouseevents.h"
+
+DEFINE_EVENT_TYPE(vwEVT_CLICK);
+DEFINE_EVENT_TYPE(vwEVT_DRAG);
+DEFINE_EVENT_TYPE(vwEVT_DRAG_FINISHED);
+IMPLEMENT_DYNAMIC_CLASS(vwClickEvent, wxCommandEvent)
+IMPLEMENT_DYNAMIC_CLASS(vwDragEvent, wxCommandEvent)
+IMPLEMENT_DYNAMIC_CLASS(vwDragFinishedEvent, wxCommandEvent)

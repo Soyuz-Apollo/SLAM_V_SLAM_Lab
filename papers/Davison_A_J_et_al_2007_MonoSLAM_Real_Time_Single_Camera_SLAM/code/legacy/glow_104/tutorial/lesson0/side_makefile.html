@@ -1,0 +1,376 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Sidebar: Makefile customization
+</h2>
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 0</a>
+</td>
+</tr></table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<b>Philosophy</b>
+</p>
+<p>
+This document describes the makefiles provided in the GLOW tutorials. This material is not really necessary to understand GLOW, especially if you prefer to use your own makefile. But if you prefer to just use the provided makefiles, and your environment is significantly different from mine, you may need some of this information.
+</p>
+<p>
+My makefile is designed with two goals. (1) To automate as much as possible the handling of dependencies. (2) To allow construction of makefiles that can be used across platforms. For most cases, then, it is sufficient to configure a makefile just once, and reuse it for different OS's, environments, debug/nodebug, etc.
+</p>
+
+<p>
+<b>Usage</b>
+</p>
+<p>
+Once you have configured a makefile, just invoke it with "make" (or "gmake" depending on how gnu-make is installed on your system). If you give it no argument, it will do a complete build, or you may give it arguments as listed below:
+</p>
+
+<dl>
+<dt>
+<tt>gmake all</tt>
+<br>
+<tt>gmake &lt;program name&gt;</tt>
+</dt>
+<dd>
+Does a complete build, including updating dependencies.
+</dd>
+
+<dt>
+<tt>gmake depend</tt>
+</dt>
+<dd>
+Only updates dependencies.
+</dd>
+
+<dt>
+<tt>gmake clean</tt>
+</dt>
+<dd>
+Cleans the entire object directory, including dependencies, object files, and template instantiation information.
+</dd>
+
+<dt>
+<tt>gmake cleanobjs</tt>
+</dt>
+<dd>
+Cleans only object files.
+</dd>
+
+<dt>
+<tt>gmake cleandeps</tt>
+</dt>
+<dd>
+Cleans only dependency files.
+</dd>
+
+<dt>
+<tt>gmake info</tt>
+</dt>
+<dd>
+Prints out information on the makefile's configuration.
+</dd>
+
+</dl>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Configuration basics</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+To configure a makefile for your project, you need to do three things. First, define a set of symbols describing your project. And next, include the file "glow_base.Makefile" in the glow_src directory, by inserting this line at the end:
+</p>
+<blockquote>
+<tt>include $(GLOWDIR)/glow_base.Makefile</tt>
+</blockquote>
+<p>
+Finally, you should specify whether you want to compile in debug or no-debug mode. No-debug is the default. You specify debug mode by creating a file called ".glowmake.DEBUG" in your build directory.
+</p>
+<p>
+Here are a list of the symbols you should define. Some of them have default values; if you do not define these symbols, the default will be used. Others do not have default values. Those symbols are required (and are listed below in boldface).
+</p>
+
+<dl>
+
+<dt>
+<tt><b>PROG</b></tt>
+</dt>
+<dd>
+This symbol should be set to the name of the final program to generate. It has no default; the makefile will throw an error if it is not specified.
+</dd>
+
+<dt>
+<tt><b>SRCDIR</b></tt>
+</dt>
+<dd>
+This symbol should be set to the path to the directory containing your source .cpp files. The suffix needs to be .cpp (sorry). If you are compiling into the same directory as your source, you may use the current directory "." for this symbol. There is no default.
+</dd>
+
+<dt>
+<tt><b>GLOWDIR</b></tt>
+</dt>
+<dd>
+This symbol should be set to the path to the glow_src directory. The makefile looks for all of GLOW's files in this directory. There is no default.
+</dd>
+
+<dt>
+<tt><b>MODULES</b></tt>
+</dt>
+<dd>
+This symbol should be set to a list of modules to compile for your project. These should be your source files WITHOUT the .cpp extension. There is no default.
+</dd>
+
+<dt>
+<tt><b>GLOWMODULES</b></tt>
+</dt>
+<dd>
+This symbol should be set to a list of virtuoso GLOW modules to compile for your project. Again, these should be specified WITHOUT the .cpp extension. There is no default.
+</dd>
+
+<dt>
+<tt><b>COMPILE</b></tt>
+</dt>
+<dd>
+This symbol should be set to the command for compile. For example, under Linux, you should probably set this to "gcc". There is no default.
+</dd>
+
+<dt>
+<tt>LINK</tt>
+</dt>
+<dd>
+This symbol should be set to the command for link. You should also include the appropriate -o flag (or equivalent directive) for specifying the name of the binary to generate, if it isn't present in LDFLAGS. For example, under Linux, you should probably set this to "gcc -o myprogram". You could also set this to "ar crs mylibrary.a" to create an archive file. The default setting is equal to "$(COMPILE) -o $(PROG)", which should be adequate for generating normal executables.
+</dd>
+
+<dt>
+<tt>SHELL</tt>
+</dt>
+<dd>
+This symbol should be set to a good shell to use. The dependency generator uses this. The default is "/bin/sh".
+</dd>
+
+<dt>
+<tt>LIBS</tt>
+</dt>
+<dd>
+This symbol should be set to a list of libraries to link with your project. For example, with IRIX/MIPSPro, a good value is "-lglut -lGL -lGLU -lX11 -lXmu -lXext -lCio -lm". The default is the empty list.
+</dd>
+
+<dt>
+<tt>DEBUGLIBS</tt>
+</dt>
+<dd>
+This symbol should be set to a list of additional libraries to link with your project when compiling in debug mode. (These are appended to the LIBS value.) The default is the empty list.
+</dd>
+
+<dt>
+<tt>NODEBUGLIBS</tt>
+</dt>
+<dd>
+This symbol should be set to a list of additional libraries to link with your project when compiling in no-debug mode. (These are appended to the LIBS value.) The default is the empty list.
+</dd>
+
+<dt>
+<tt>CFLAGS</tt>
+</dt>
+<dd>
+This symbol should be set to the compiler flags that should be used. This includes optimization options, warning options, -I directives, -D directives and other directives. The default is the empty string.
+</dd>
+
+<dt>
+<tt>LDFLAGS</tt>
+</dt>
+<dd>
+This symbol should be set to the linker flags that should be used. This includes -L directives and other options. The default is the empty string.
+</dd>
+
+<dt>
+<tt>DEBUGCFLAGS</tt>
+</dt>
+<dd>
+This symbol should be set to any additional compiler flags that should be set when compiling in debug mode. (These are appended to the CFLAGS value.) This should include -DGLOW_OPTION_DEBUG, and may also include -g, less aggressive optimization options, and other debugging-related options. The default is "-DGLOW_OPTION_DEBUG".
+</dd>
+
+<dt>
+<tt>NODEBUGCFLAGS</tt>
+</dt>
+<dd>
+This symbol should be set to any additional compiler flags that should be set when compiling in no-debug mode. (These are appended to the CFLAGS value.) This may include -DNODEBUG, and also may include more aggressive optimization options. The default is "-DNODEBUG".
+</dd>
+
+<dt>
+<tt>DEBUGLDFLAGS</tt>
+</dt>
+<dd>
+This symbol should be set to any additional linker flags that should be set when compiling in debug mode. (These are appended to the LDFLAGS value.) The default is the empty string.
+</dd>
+
+<dt>
+<tt>NODEBUGLDFLAGS</tt>
+</dt>
+<dd>
+This symbol should be set to any additional linker flags that should be set when compiling in no-debug mode. (These are appended to the LDFLAGS value.) The default is the empty string.
+</dd>
+
+<dt>
+<tt>DEPFLAGS</tt>
+</dt>
+<dd>
+This symbol should be set to the flag that should be passed to the compiler to tell it to make only dependencies. Typically this is "-M" (which is the default value.) For gcc, however, a better value to give is probably "-MM", which ignores system headers.
+</dd>
+
+</dl>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Specializing configuration</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+The makefile provides facilities for customizing the configuration based on the operating system or environment. I call these two facilities architecture specializations and file-option specializations. Architecture specializations allow you to customize based on the architecture. (Or techincally, the value returned by the unix command "uname".) File-option specializations allow you to customize based on the existence of files that you can create in your build directory.
+</p>
+
+<p>
+<b>Architecture specializations</b>
+</p>
+<p>
+Architecture specializations allow you to specify different configurations depending on the architecture. This can be useful if you're developing in a multiplatform environment and want to work from the same source code base. For example, I develop on a cluster that includes both SGI IRIX workstations and x86-based Linux workstations. Under these two environments, the compiler used is different (CC on IRIX, gcc on Linux), and so are the libraries and CFLAGS necessary to build my programs.
+</p>
+<p>
+To handle this case without having to keep separate makefiles, you can give an architecture specialization for any of the makefile symbols. To do this, define a symbol named &lt;symbol-name&gt;_&lt;uname&gt;. This value will be used in place of the normal &lt;symbol-name&gt; value if calling the unix command "uname" returns &lt;uname&gt;
+</p>
+<p>
+For example, in my case, I need the compiler to be set to CC under uname IRIX, and gcc under uname Linux. So my makefiles could include these two lines:
+</p>
+<blockquote>
+<tt>COMPILE_IRIX=CC</tt>
+<br>
+<tt>COMPILE_LINUX=gcc</tt>
+</blockquote>
+<p>
+But that's not quite how my makefile is set up. Defining a symbol without the architecture specialization provides a default value. This value is used for any platform whose uname does not match any of the provided specializations. So if you wanted to use gcc for EVERY platform except IRIX, you would give gcc as the default, and provide CC as a specialization for IRIX. This is how my makefile actually looks:
+</p>
+<blockquote>
+<tt>COMPILE=gcc</tt>
+<br>
+<tt>COMPILE_IRIX=CC</tt>
+</blockquote>
+<p>
+Now, if you compile under IRIX, it will use CC, but if you compile under anything else, like Linux, FreeBSD, Solaris, etc., it will use gcc.
+</p>
+<p>
+Any symbol can carry an architecture specialization. If you look through the makefiles provided in this tutorial, you'll see the defaults set up for gcc, with an IRIX specialization for COMPILE, LIBS, DEPFLAGS, CFLAGS and LDFLAGS.
+</p>
+
+<p>
+<b>File-option specializations</b>
+</p>
+<p>
+File-option specializations allow you to specify different configurations depending on the existence of files in your build directory. This lets you build different versions of your program (such as debug and non-debug versions) using the same makefile.
+</p>
+<p>
+A file-option is triggered by the existence of a file named ".glowmake.&lt;option-name&gt;" in the build directory. If such a file exists, the file-option is said to be triggered. The makefile doesn't actually read the file or care what is in it; just so long as it exists (i.e. you can just create it using the unix command "touch".) You may trigger multiple file-options for a particular build.
+</p>
+<p>
+There are three special file-options that are handled specially by the makefile: DEBUG, STRIP and GLOWLIB. If DEBUG is triggered, then the makefile will build a debug version, using the debug versions of some of the symbols (such as CFLAGS). If STRIP is triggered, the makefile will run "strip" on the final binary after the build is completed. If GLOWLIB is triggered, the makefile will not compile the GLOW sources, but instead attempt to use an existing GLOW library archive or shared library. If DEBUG is triggered, the makefile will look for libglowdebug.a or libglowdebug.so. If DEBUG is not triggered, the makefile will look for libglow.a or libglow.so.
+</p>
+<p>
+You may, however, also define your own file-options, and then make specializations of the makefile symbols for when those file-options are triggered. This is handled a little differently from architecture specializations, in that it makes a distinction between two kinds of makefile symbols.
+</p>
+<p>
+Makefile symbols that specify just one value handle file-options in the following way. You may provide a specialized symbol &lt;symbol-name&gt;_&lt;file-option&gt;, only for the FIRST file-option provided (in alphabetical order). If such a symbol specialization is provided, the symbol overrides the default symbol. Symbols that support this kind of file-option specialization are PROG, SRCDIR, VSRCDIR, COMPILE, LINK and SHELL.
+</p>
+<p>
+For example, suppose you have created files ".glowmake.OPTIONA" and ".glowmake.OPTIONB". If you provide a specialized symbol "PROG_OPTIONA", then this will override the default PROG symbol, and give a name for this specialized version of your program. However, if you attempt to define the symbol "PROG_OPTIONB", it will be ignored because OPTIONB is not the first file-option in alphabetical order.
+</p>
+<p>
+For these symbols, you may provide both file-option specializations and architecture specializations. For example, "PROG_IRIX_OPTIONA" can specify the name of the program if compiled on uname IRIX, with file-option OPTIONA triggered. If a symbol with both specializations is given, the architecture name must precede the file-option name in the symbol's name (i.e. PROG_OPTIONA_IRIX is incorrect). In general, more specialized symbol names will override more general names, and giving only a file-option specialization will override giving only an architecture specialization.
+</p>
+<p>
+The second type of file-option specialization is for makefile symbols that specify a list of values, such as MODULES. In these cases, all provided file-option specializations (not just the first) are appended to the default value for the symbol. For example, if you have the file-options "USEGAMMA" and "USEWAVELET" triggered, and you include the specializations:
+</p>
+<blockquote>
+<tt>MODULES_USEGAMMA=gamma</tt>
+<br>
+<tt>MODULES_USEWAVELET=wavelet</tt>
+</blockquote>
+<p>
+...then the modules "gamma" and "wavelet" (i.e. gamma.cpp and wavelet.cpp) will be added to the list of modules to compile. Symbols that support this type of file-option specialization include MODULES, VMODULES, CFLAGS, LDFLAGS, DEBUGCFLAGS, NODEBUGLDFLAGS, DEBUGLDFLAGS, NODEBUGLDFLAGS, LIBS, DEBUGLIBS and NODEBUGLIBS.
+</p>
+
+</blockquote>
+
+
+
+
+
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 0</a>
+</td>
+</tr></table>
+</p>
+
+
+<hr size=2>
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

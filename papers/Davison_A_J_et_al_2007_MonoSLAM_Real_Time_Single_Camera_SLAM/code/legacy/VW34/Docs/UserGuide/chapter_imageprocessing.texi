@@ -1,0 +1,97 @@
+VW provides a wide array of tools for processing images, ranging from
+simple thresholding and convolution operators up to complete algorithms
+such as Canny edge detection and Harris/Plessey corner detection. All
+the classes and functions described are included by
+using
+@example
+   #include <VW/improc.h>
+@end example
+or more usually, one can include just the desired algorithm, eg
+@example
+   #include <VW/Improc/subsample.h>
+@end example
+
+
+@ifnottex 
+@noindent Sections: 
+@end ifnottex
+@menu
+* Threshold::
+* Subsample::
+* IntegralImage::
+* ImageDiff::
+* Convolve::
+* Chamfer distance::
+@end menu
+
+
+@c ------------------------------------------------------------------- c@
+
+@node Threshold, , ,ImageProcessing
+@section Threshold
+@tindex Threshold
+
+@example
+   #include <VW/Improc/threshold.h>
+@end example
+
+
+
+@c ------------------------------------------------------------------- c@
+
+@node Subsample, , ,ImageProcessing
+@section Subsample
+@tindex Subsample
+
+@example
+   #include <VW/Improc/subsample.h>
+@end example
+
+
+
+@c ------------------------------------------------------------------- c@
+
+@node IntegralImage, , ,ImageProcessing
+@section IntegralImage
+@tindex IntegralImage
+
+@example
+   #include <VW/Improc/integralimage.h>
+@end example
+
+
+
+@c ------------------------------------------------------------------- c@
+
+@node ImageDiff, , ,ImageProcessing
+@section ImageDiff
+@tindex ImageDiff
+
+@example
+   #include <VW/Improc/imagediff.h>
+@end example
+
+
+
+@c ------------------------------------------------------------------- c@
+
+@node Convolve, , ,ImageProcessing
+@section Convolve
+@tindex Convolve
+
+@example
+   #include <VW/Improc/convolve.h>
+@end example
+
+
+
+@c ------------------------------------------------------------------- c@
+
+@node Chamfer distance, , ,ImageProcessing
+@section Chamfer distance
+@cindex Chamfer distance 
+
+@example
+   #include <VW/Improc/chamferdistance.h>
+@end example
+@c ------------------------------------------------------------------- c@

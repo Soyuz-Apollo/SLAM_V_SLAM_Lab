@@ -1,0 +1,24 @@
+/** 
+ * @page VWGTKPage VWGTK
+ *
+ * The GTK extension library provides displays (2D and 3D) and user interface elements that use 
+ * the GTK widget set. In particular it provides
+ *
+ * Displays (2D)
+ *
+ *     - VW::DisplayGTK : A display with its own window
+ *     - VW::DisplayGTKWidget : A display widget that must be embedded in a GTK interface
+ *     - VW::DisplayGTKGL : A display with its own window that uses GL to speed things up a bit
+ *     - VW::DisplayGTKWidget : A display widget that uses GL to speed things up a bit and must be embedded in a GTK interface
+ *
+ * Displays (3D)
+ *
+ *     - VW::ThreeDToolGTKGLWidget : A version of the 3D tool which is a GTK widget
+ *
+ * Interface elements
+ *
+ *     - VW::InterfaceGTK : base class for all GTK interface widgets.
+ *     - VW::FirewireCameraGTK : A widget to control an IEEE1394 camera
+ *     - VW::SequencerFileGTK : A widget to control the VW::SequencerFirewire
+ *     - VW::SequencerFirewireGTK : A widget to control the VW::SequencerFirewire
+ */

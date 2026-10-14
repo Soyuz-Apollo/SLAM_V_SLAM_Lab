@@ -1,0 +1,7 @@
+/** 
+ * @page VWMeteorPage VWMeteor
+ *
+ * The Meteor extension library provides a sequencer which knows how to get up to three
+ * images from the Matrox Meteor (v1) frame grabber.
+ *
+ */

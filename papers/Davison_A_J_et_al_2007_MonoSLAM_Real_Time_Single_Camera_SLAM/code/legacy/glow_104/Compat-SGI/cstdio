@@ -1,0 +1,5 @@
+// This is a hack for cases when the header with this name is missing.
+// Do not use if the file is already present.
+
+#include <stdio.h>
+namespace std {}

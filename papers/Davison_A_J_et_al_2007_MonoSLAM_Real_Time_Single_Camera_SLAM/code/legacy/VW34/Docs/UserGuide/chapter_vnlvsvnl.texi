@@ -1,0 +1,111 @@
+This section summarises the differences between the VW version of VNL and the VXL project original (vnl). It is aimed at those converting code between the two, but should also indicate how to copy across later enhancements to the vnl project.
+
+
+@section Why have a seperate VNL?
+
+The first and immediate question is why have a seperate VNL at all? Why not just use the VXL project numerics library as is, making it easy to get the latest version? There are two main reasons for this:
+
+@itemize @bullet
+   @item To compile the original VNL requires the whole of the VXL project as well as the additional packages needed even to create the makefiles. Given that we only want a small part of VXL, this is slightly absurd.
+   @item The VXL project aims for complete cross platform compilation, and is in many ways "lowest common denominator" code. To achieve this, the VXL builders have wrapped practically every standard C++ function (eg. printf becomes vcl_printf). This increases significantly the size of the library sources, and for compilers that are mostly ANSI compliant is completely unnecessary. Similarly, the original vxl pollutes the standard namespace because some archaic compiler doesn't support namespaces. 
+@end itemize
+
+@section Changes for the user
+
+As far as the user is concerned there are four main changes that must be made to existing code that used vnl.
+@enumerate
+   @item To avoid conflict the library is called VNL, inplace of vnl.
+   @item All VNL functions are in the VNL namespace.
+   @item Functions and classes now mostly match the VW source style.
+   @item ANSI C++ suports default template args, and if the type argument is placed last, "double" can be made the default type. (ie. @code{VNL::MatrixFixed<3,3>} is equivalent to @code{VNL::MatrixFixed<3,3,double>}.) 
+@end enumerate
+
+Some examples are:
+
+@multitable @columnfractions .5 .5
+@item @strong{Original} @tab @strong{New}
+
+@item @code{#include <vnl/vnl_matrix_fixed.h>} 
+@tab @code{#include <VNL/matrixfixed.h>}
+
+@item @code{#include <vnl/algo/vnl_svd.h>} 
+@tab @code{#include <VNL/algo/svd.h>}
+
+@item @code{vnl_matrix_fixed<double,3,3>} 
+@tab @code{VNL::MatrixFixed<3,3,double>}
+
+@item @code{vnl_svd<double>(M).solve()} 
+@tab @code{VNL::SVD<double>(M).Solve()}
+
+@end multitable
+
+Note that the VNL:: prefix can be dropped if the command using namespace
+VNL is used:
+
+@multitable @columnfractions .5 .5
+@item @strong{Original} @tab @strong{New}
+
+@item @example
+#include <iostream>
+
+#include <vnl/vnl_vector_fixed.h>
+#include <vnl/vnl_matrix_fixed.h>
+#include <vnl/algo/vnl_svd.h>
+
+using namespace std;
+
+
+int main()
+@{
+  vnl_vector_fixed<double,3> x,y;
+  x[0] = 1; x[1] = 2; x[2] = 3;
+
+  vnl_matrix_fixed<double,3,3> M;
+  M[0][0] = cos(theta); M[0][1] = 0; M[0][2] = -sin(theta);
+  M[1][0] = 0;          M[1][1] = 1; M[1][2] = 0;
+  M[2][0] = sin(theta); M[2][1] = 0; M[2][2] = cos(theta);
+
+  y=M*x;
+
+  cerr << "y=M*x: " << y << endl;
+
+  vnl_svd<double> svd(M);
+
+  cerr << "Singular values: " << svd.w() << endl;
+
+@}
+@end example
+@tab @example
+#include <iostream>
+
+#include <VNL/vectorfixed.h>
+#include <VNL/matrixfixed.h>
+#include <VNL/algo/svd.h>
+
+using namespace std;
+using namespace VNL;
+
+int main()
+@{
+  VectorFixed<3> x,y;
+  x[0] = 1; x[1] = 2; x[2] = 3;
+
+  MatrixFixed<3,3> M;
+  M[0][0] = cos(theta); M[0][1] = 0; M[0][2] = -sin(theta);
+  M[1][0] = 0;          M[1][1] = 1; M[1][2] = 0;
+  M[2][0] = sin(theta); M[2][1] = 0; M[2][2] = cos(theta);
+
+  y=M*x;
+
+  cerr << "y=M*x: " << y << endl;
+
+  SVD<double> svd(M);
+
+  cerr << "Singular values: " << svd.W() << endl;
+
+@}
+@end example
+
+@end multitable
+
+Despite these changes, there is no underlying difference in the VNL code. It can now be compiled as part of VW and has no dependencies beyond an ANSI C++ compiler. 

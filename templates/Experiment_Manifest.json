@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "run_id": null,
+  "paper_id": null,
+  "algorithm": null,
+  "code": {"repository": null, "commit": null, "dirty": null, "patch_path": null},
+  "dataset": {"id": null, "sequence": null, "relative_path": null, "sha256": null},
+  "calibration_path": null,
+  "config_path": null,
+  "command": null,
+  "environment": {"os": null, "architecture": null, "cpu": null, "container_digest": null},
+  "evaluation": {"reference_source": null, "alignment": null, "timestamp_tolerance_s": null},
+  "metrics": {"ate_rmse_m": null, "rpe_translation_rmse_m": null, "rpe_rotation_rmse_deg": null, "tracking_coverage": null},
+  "artifacts_path": null,
+  "status": "not_run"
+}

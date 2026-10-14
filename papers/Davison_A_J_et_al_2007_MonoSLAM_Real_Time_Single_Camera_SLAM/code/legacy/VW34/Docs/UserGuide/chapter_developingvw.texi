@@ -1,0 +1,139 @@
+@section Who can change VW?
+
+@section Library addition guidelines
+
+@section Code layout
+
+The style in which one writes C++ code tends to be a very personal thing, and people have fairly polarised opinions on what is best. Some say lower case only and like plenty of underscores in their symbol names, others like mixed case (be it Java style or otherwise), or different casing styles according to symbol type. For VW, a style evolved naturally, without much argument or discussion, and this document is an effort to formalise the patterns that have emerged. Hopefully no-one will be too upset with these choices.
+
+@subsection Symbol names
+
+@multitable @columnfractions .2 .2 .6
+
+@item Symbol
+@tab Example
+@tab Description
+
+@item Struct
+@tab @code{struct MyStruct @{@};}
+@tab Capitalised mixed case. Unlike the Java style, the first letter is also capitalised.
+
+@item Class
+@tab @code{class MyClass @{@};}
+@tab Capitalised mixed case. Unlike the Java style, the first letter is also capitalised.
+
+@item Function
+@tab @code{void MyFunc(int i) @{@}}
+@tab Capitalised mixed case. Unlike the Java style, the first letter is also capitalised.
+
+@item #define
+@tab @code{#define A_CONSTANT 6}
+@tab Defines and other constants are all in capitals, with underscores sepearating words.
+
+@item variables and parameters
+@tab @code{double my_variable=12.5;}
+@tab Non-internal variables (see next entry) should be in lower-case only, with words seperated by underscores if desired.
+
+@item internal (private) variables
+@tab @code{double _private_var=36.2;}
+@tab Internal variables (ie. variables that the user should never see, such as private/protected class data) should be lower-case and prefixed by an underscore.
+
+@end multitable
+
+@subsection File names
+
+It is usually common practice to make filenames match the names of the class or function contained within. A second common scheme is to have mixed case for directory names and lower-case only for filenames. In VW both are used - that is, the filenames match the names of the contained classes as closely as possible with the difference that they are always lower case. Directory names are mixed-case. Eg. "VWCore/Geom/point2d.h" contains the class "VW::Point2D".
+
+In a style borrowed from the GLibC (and GCC) project, where header files start to unweildy because of the amount of template or inline code, a ".tcc" file of the same name may be used, and included at the end of the header.
+
+@subsection Code layout
+
+ There are few firm rules for code layout, beyond that it should be neat!
+
+However, there are some general guidelines as follows:
+@enumerate
+   @item Header files should contain as little code as possible. Where code must be included (such as for inlines and templates) it should appear seperately from the declaration so that the class or function declaration is "clean". In general, implementation should appear right at the bottom of the header file (or even in a seperate ".tcc" that gets included). Unfortunately, the Microsoft family of compilers have problems with this, despite it being a basic tenet of the ANSI standard, so compromises may have to be made.
+   @item Line-wrap should be avoided. How you split a line isn't too important, but it greatly aids readability if no line wraps-round for a reasonable size viewer (eg 80-column).
+   @item Comments are good. But only if they tell you things that aren't immediately obvious from the code itself. Generally, aim to describe what the code is trying to do (which rarely changes) rather than how it does it (which does get changed). (This is for in-code comments rather than class/function documentation, which is describedbelow.) 
+@end enumerate
+
+
+@section Source code documentation
+
+In an effort to add documentation without detracting from the readability of the library header files, the following standards have been adopted. These are compatible with the source code documentation systems Doc++ and Doxygen and are strongly related to the JavaDoc style introduced by Sun.
+
+All comments which are to be included in the documentation are opened by
+the C-style comment /** and closed by the usual */, placed immediately
+before the structure to which they refer. Other comment types (eg. //,
+/* ... */) are ignored. A stupidly simple example is given at the end of
+this page. 
+
+@subsection Non source files
+For each library and module an introductory text is provided in a file
+introduction.dox. Similarly, other documentation that isn't specific to
+a single sourcefile can be included in a file with the extension .dox,
+as doxygen will parse these.
+
+@subsection Descriptions
+Every namespace, class, struct or function can have two descriptions, one brief (a single sentence) and one long. These can appear either with the declaration (ie. in the header file) or with the definition (ie. the associated .c/.cc file - or for inline functions, later in the header). To avoid huge class definitions, it is generally advisable to put @emph{only the brief description next to the declaration}, and everything else goes with the definition.
+
+@emph{The brief description} should be a single sentence which concisely
+describes the purpose of the function. It should not describe how it
+works, just what it is intended to do. The brief description is
+specified by the @code{@@brief} tag, or by default is taken as the first
+sentence of the description.
+
+@emph{The long description} , usually placed with the function
+definition, should flesh out the details of the structure without
+repeating the brief description (in the docs, these always appear
+together). Where a complex class or function is neatly demonstrated by
+an example in VWExamples, this should be mentioned.
+
+(see example for 'Main Description', below) 
+
+@subsection Main description
+
+Where a file contains a single class (or has one main class), the documentation for this class should be at the start of the header file. It should include the initial authors name (@code{@@author}), date of creation (@code{@@date}) and which part of the documentation it belongs to (@code{@@ingroup}), in addition to the usual brief and long descriptions. To make sure the documentation appears with the class, the @code{@@class} tag is used, giving the full class name (ie. including namespace).
+@example
+/**
+ * @@class   VW::ROI
+ * @@ingroup Image
+ * @@author  ID Reid, BJ Tordoff
+ * @@date    15/01/2003
+ *
+ *          (c) Copyright University of Oxford
+ *                  All rights reserved
+ *
+ * @@brief   Class to hold the bounds on the Region of Interest (ROI) of a 2D 
+ *          array (image).
+ *
+ * Data is stored as the first row/column of interest, and one beyond the last, so
+ * a loop that does for(x=roi.Left();x<roi.Right();x++) @{@} does the right thing.
+ */
+@end example
+
+
+@subsection Parameter list
+
+Immediately following the long description comes the parameter list. Each parameter is listed by the @code{@@param} tag, followed the name and a description. This description should indicate what the parameter means, but also the expected values if they are not obvious.
+@example
+/**
+ * @@param left the first column inside the region
+ * @@param right the first column beyond the right edge of the region
+ * @@param top the first row inside the region
+ * @@param bottom the first row beyond the bottom of the region
+ */
+inline void 
+VW::ROI::Set(int left, int top, int right, int bottom) 
+@{ ... @}
+@end example
+
+
+
+@subsection Return value
+
+It is particularly important to describe what values a function returns (if any), and this is done with the @code{@@returns} tag, followed by a description. This description should indicate what values can be returned, and where the meaning is not obvious, what each value means (eg. if you use -1 or false to indicate some sort of failure).
+@example
+/** @@returns the width of (number of columns inside) the region. */
+unsigned int VW::ROI::Width() const @{...@}
+@end example

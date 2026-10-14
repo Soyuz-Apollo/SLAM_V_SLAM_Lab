@@ -1,0 +1,8 @@
+/**
+ * @defgroup GeometricObjects
+ * @brief    Classes representing geometric objects and entities.
+ */
+/**
+ * @defgroup GeometricAlgorithms
+ * @brief    Classes representing geometric calculations.
+ */

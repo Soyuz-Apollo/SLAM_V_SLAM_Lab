@@ -1,0 +1,120 @@
+GENERAL
+
+VW Parameter Files are simple XML files for storing parameters for VW
+compute object (such as Plessey or RANSAC).  The expected file
+structure is as follows:
+
+<param_list_type>
+  <parameter1>value or could be a string</parameter1>
+  <parameter2>value or could be a string</parameter2>
+  <parameter3>value or could be a string</parameter3>
+  ....
+</param_list_type>
+<param_list_type2>
+  ....
+</param_list_type2>
+....
+
+eg.
+
+<PlesseyParams>
+  <StrengthThreshold> 0.25 </StrengthThreshold>
+  <GaussianSigma> 1.0 </GaussianSigma>
+  <PatchSize> 5 </PatchSize>
+  <EdgePhobia> 0.1 </EdgePhobia>
+</PlesseyParams>
+<CornerMatcherParams>
+  ...
+</CornerMatcherParams>
+
+Read the PARAMPARSER section for restrictions placed on file format by
+the parser.
+
+
+PARAMPARSER
+
+ParameterParser is a simple parser for extracting the data from a
+parameter file.  It is not very robust so if the file is ill-formed it
+will simply fail to pick up the correct values, or any values.  I
+expect it may be modified to use standard XML parsing libraries, but
+at the moment it's nice that we're not relying on their existence.
+
+Everything between <field> and </field> is taken as its contents,
+including white space.  If you request a number from the data field it
+will be extracted as a C++ string and then converted, so if there is
+no number in there, it will return whatever stringstream returns in
+that case (usually 0).  This also means that you can pad out values
+with spaces for formatting, if you like, because they will be ignored
+when the string is converted.  Everything outside label blocks is
+ignored, as is everything before the parameter list's <name> block.
+
+Using ParameterParser: The ParameterParser constructor takes a string
+parameter, which is the name expected in the <param_list_type> field, 
+and a filename string which defaults to
+".params".  It will then parse the file, and extract an associated
+map<string, string> of parameter names as keys and string data as the
+values from the first <parameter list> block it finds with that name.
+If the file is ill-formed, meaning no </parameter list> is found
+before the end of the file, then operator bool () will return false.
+The results can then be examined using the access function const
+map<string, string>& Parameters(), or by requesting the data field for
+a particular parameter using the GetValue() functions, which return
+false if it isn't there.
+
+A typical use of ParameterParser might go something like this:
+
+class ComputeObject {
+  ...
+  // Parameters
+  unsigned int sizex;
+  unsigned int sizey;
+  double thresh;
+  int num_cycles;
+  ...
+  void GetParamsFromFile (string filename = ".params");
+  ...
+}
+
+void ComputeObject::GetParamsFromFile (string filename = ".params")
+{
+  ParameterParser parser ("ComputeObject", filename);
+  if (!parser) cout << "Can't read parameter file " << filename << endl;
+
+  // Modify each parameter in turn if it is in the file, otherwise
+  // leave it unchanged
+  parser.GetValue ("sizex", sizex);
+  parser.GetValue ("sizey", sizey);
+  parser.GetValue ("threshold", thresh);
+  parser.GetValue ("number of cycles", num_cycles);
+}
+
+The GetParamsFromFile method would probably be placed in the header
+file so that everything that needs to be changed if the parameters
+change is in the same place.
+
+You can also use Extract() to extract from the parsed file the data
+associated with each parameter name in an array passed to the object.
+This may be preferred from the point of view of neatness, but it
+probably won't require less effort to maintain.  Below is an example
+equivalent to the above using Extract().  I personally wouldn't use
+#defines but it's one way of doing it:
+
+#define NAME_OF_OBJECT "ComputeObject"
+#define NUM_PARAMS 4
+#define PARAMETER_NAMES {"sizex", "sizey", "threshold", "number of cycles"}
+#define DEFAULT_VALUES {3.0, 3.0, 0.2, 100.0}
+
+void ComputeObject::GetParamsFromFile (string filename = ".params")
+{
+  string parameter_names[NUM_PARAMS] = PARAMETER_NAMES;
+  double values[NUM_PARAMS] = DEFAULT_VALUES;
+
+  if (ParameterParser (NAME_OF_OBJECT, parameter_names, values,
+		   NUM_PARAMS, filename)) {
+	sizex = floor (values[0]);
+	sizey = floor (values[1]);
+	threshold = values[2];
+	num_cycles = int (values[3]);
+  }
+  else cout << "Can't read file " << filename << endl;
+}

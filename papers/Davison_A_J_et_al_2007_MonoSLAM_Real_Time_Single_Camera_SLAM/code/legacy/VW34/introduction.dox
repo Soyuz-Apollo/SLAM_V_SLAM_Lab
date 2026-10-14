@@ -1,0 +1,74 @@
+/** 
+\mainpage %VW : Source-code documentation
+The %VW project aims to provide a lightweight set of
+classes and fast functions for performing basic computer-vision and
+image-processing related tasks. This documentation has been built from the
+source-code of the library and as such is quite technical in nature - for a more
+gentle introduction to all things %VW see the user guide. Below is an index into
+the library by functionality (section \ref Functionality), but first a list of
+the individual libraries that make up the Workbench. (A search utility is
+available <A HREF="search.html">here</A>.)
+
+
+\section Libraries Libraries
+%VW is split into several component
+libraries of increasing dependance:
+ 
+Core libraries
+ 
+ - \link VNLPage VNL \endlink : A reduced version of the VXL project's numerics
+library
+ - \link VWCorePage VW \endlink: The core functionality (really should be called
+VWCore). Image classes, image IO etc.
+
+User interface libraries
+
+ - \link VWXPage VWX \endlink: 2D user interface functionality using
+raw X-windows commands.
+ - \link VWXFormsPage VWXForms \endlink: 2D user interface functionality using
+the XForms widget library.
+ - \link VWGLPage VWGL \endlink: 3D user interface functionality using OpenGL
+ - \link VWGTKPage VWGTK \endlink: 2D and 3D user interface functionality using
+GTK--.
+ - \link VWGLOWPage VWGLOW \endlink: 2D and 3D user interface functionality
+using GLOW.
+ - \link VWQtPage VWQt \endlink: 3D user interface functionality using Qt.
+ 
+Hardware support
+
+ - \link VWFirewirePage VWFirewire \endlink: Support for image capture
+from IEEE1394 digital cameras
+ - \link VWMeteorPage VWMeteor \endlink: Support for image capture from the
+Matrox Meteor analogue capture card
+ - \link VWYorickPage VWYorick \endlink: Control of the Yorick series of active
+vision platforms
+ - \link VWGTIPage VWGTI \endlink: Control of the GTI mobile robot
+
+
+\section Functionality Functionality
+Perhaps more usefully, the Workbench is indexed by category below. Classes that
+provide related functionality are grouped by their function rather than by which
+library they can be found in (although the two are often related).
+ 
+ - \link Sequencers Sequencers \endlink :
+Classes for retrieving images from a range of sources, including file lists,
+movies, IEEE1394 cameras and the Matrix Meteor.
+ - \link Image Image \endlink :
+Image classes, IO and conversions.
+ - \link ImageProcessing ImageProcessing \endlink :
+Image filtering, mangling and feature detection.
+ - \link GeometricObjects GeometricObjects \endlink :
+Objects to represent geometric constructs such as points, lines, rotations,
+multi-view relations etc.
+ - \link GeometricAlgorithms GeometricAlgorithms \endlink :
+Algorithms and operations on geometric objects, such as calculating
+image-relations.
+ - \link Displays Displays \endlink :
+Classes for opening windows and drawing 2D things using a range of widget
+libraries.
+ - \link GLTools GLTools \endlink :
+Classes that provide 3D OpenGL displays and 3D objects to draw on them.
+ - \link UserInterface UserInterface \endlink :
+Classes that provide widgets for controlling/viewing various VW objects.
+
+*/

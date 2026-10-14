@@ -1,0 +1,33 @@
+/* configuration file for test.c */
+
+/* Hardware description */
+
+T800 (memory = 1M) ROOT;
+
+edge hctl_1100;
+
+connect host to ROOT.link[0];
+connect ROOT.link[2] to hctl_1100;
+
+/* software description */
+process (stacksize = 100K, heapsize = 200K,
+         interface (input from_host, output to_host,
+		    input from_hctl, output to_hctl)) Root;
+
+input from_host, from_hctl;
+output to_host, to_hctl;
+
+connect Root.from_host to from_host;
+connect Root.to_host   to to_host;
+connect Root.from_hctl to from_hctl;
+connect Root.to_hctl   to to_hctl;
+
+/* mapping description */
+
+use "root.lku" for Root;
+place Root on ROOT;
+
+place from_host on host;
+place to_host on host;
+place from_hctl on hctl_1100;
+place to_hctl on hctl_1100;

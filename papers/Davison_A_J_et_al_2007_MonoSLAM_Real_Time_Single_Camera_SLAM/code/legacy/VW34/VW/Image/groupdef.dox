@@ -1,0 +1,5 @@
+/**
+ * @defgroup Image
+ * @brief    Classes for storing, loading and saving images, and converting between
+ *           different formats.
+ */

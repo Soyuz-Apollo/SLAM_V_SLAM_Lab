@@ -1,0 +1,8 @@
+/** 
+ * @page VWGTIPage VWGTI
+ *
+ * The GTI extension library provides a simple class which allows sending of commands 
+ * and receiving of odometry to/from the GTI mobile robot.
+ *
+ *     - VW::GTI : A simple class for controlling GTI.
+ */

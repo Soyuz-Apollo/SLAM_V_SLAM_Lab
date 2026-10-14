@@ -1,0 +1,17 @@
+SceneLib: The Scene Library
+---------------------------
+Software for real-time simultaneous localisation and mapping.
+
+See also the files THANKS and ChangeLog.
+
+Designed and implemented by 
+
+Andrew Davison
+Imperial College London
+ajd@doc.ic.ac.uk
+
+with additional work by
+
+Paul Smith
+University of Oxford
+pas@robots.ox.ac.uk

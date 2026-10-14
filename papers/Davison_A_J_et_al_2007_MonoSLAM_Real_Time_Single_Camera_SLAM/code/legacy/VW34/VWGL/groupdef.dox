@@ -1,0 +1,5 @@
+/**
+ * @defgroup GLTools
+ * @brief    Tools for creating and manipulating 3D displays and some draw functions for
+ *           some physical objects.
+ */

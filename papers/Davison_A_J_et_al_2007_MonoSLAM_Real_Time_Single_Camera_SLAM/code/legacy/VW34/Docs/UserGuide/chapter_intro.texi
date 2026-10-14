@@ -1,0 +1,117 @@
+@section About VW
+
+@subsection What is VW?
+
+VW is a suite of libraries which provide C++ objects and algorithms
+    for building Computer Vision applications and other related
+    programs. At its most basic level, it provides numerical
+    functionality in the library VNL, simple image and geometric
+    objects in the library VW, with the remaining libraries providing
+    GUI interfaces using various widget sets and support for a few
+    bits of hardware.
+
+@subsection What VW is not
+
+The VW software is not a program - there is no executable, and on its
+    own it doesn't do anything particularly interesting. Some examples
+(@pxref{(VWExamples)}) are provided which demonstrate how to perform a few simple tasks, but VW is only there to help write applications - the app itself is down to you.
+
+
+
+@section Requirements
+
+VW is primarily developed on Redhat Linux (currently version
+    9). Despite this we do make some effort to keep as much as
+    possible ANSI/Posix compliant so that it should compile and
+    install on a variety of Linux distributions without too many
+    headaches. Much of it will also work unchanged on Windows (32 bit) using Visual C++ 2003, but full support is a longer term aim. 
+
+
+The known requirements are:
+@itemize
+   @item A moderately standards compliant compiler. GCC 2.95 or above
+        should be OK, but GCC 3.2 or above is preferable. On windows
+        we are looking at Dev Studio 7 (2003). Templates are used extensivley,
+so any compiler that has problems with templates (which Microsoft historically seems to think optional) will have trouble.
+@end itemize
+
+Each of the VW libraries may have further requirements (eg particular
+hardware or GUI widget sets - see below).
+
+@section Obtaining VW
+
+The VW libraries are available from the Active Vision Lab CVS archive using
+@code{cvs checkout VW3x} (where x is the current version number). Alternatively source and pre-compiled
+packages may be available from the Active Vision Lab software page @uref{http://www.robots.ox.ac.uk/ActiveVision/Software}.
+
+@section The libraries
+
+VW comes as a set of libraries, and these are described in the different
+chapters of this document. Here is a quick overview of what each does:
+
+@subsection Main libraries
+
+The first two libraries are the heart of the suite, required for most
+things:
+@itemize
+   @item @strong{VNL}: Numerical objects and algorithms - matrix and
+                       vector classes, SVD and QR decomposition,
+                       non-linear minimisation etc.
+   @item @strong{VW}: Image and image feature objects, simple image processing and base
+                      classes for displays and image acquisition objects. Most of
+                      these have no pre-requisites, but the geometric algorithms
+                      make heavy use of the numerics library. Requires @strong{VNL}.
+@end itemize
+
+@subsection GUI libraries
+
+For actually displaying the output and building the interfaces for  your
+fantastic programs some libraries are provided that make use of various
+widget sets:
+@itemize
+   @item @strong{VWX}: Provides a display class that opens an X window and provides the
+                       usual interactive clicking, dragging etc
+                       features. Requires @strong{VW,XFree86}.
+   @item @strong{VWGL}: Provides a 3D display and some objects to draw
+                        on it. You must have a working installation of both OpenGl (plus
+                        headers) and the GL Utility Toolkit
+                        (GLUT). Requires @strong{VNL,VW,OpenGL,GLUT}.
+   @item @strong{VWGTK}: Provides a display class that opens a window and provides the
+                         usual interactive features. Also provides a similar display
+                         that can be embedded as a widget, and other widgets that
+                         interface to various VW objects. The C++ GTK
+wrappers use the SigC++ library for their callback handling. Requires
+                         @strong{VNL,VW,VWGL,Gtk--,GtkGL--,SigC}.
+   @item @strong{VWWx}: Provides a display class that opens a GTK window and provides the
+                         usual interactive features. Also provides a similar display
+                         that can be embedded as a widget in a WxWidgets interface, and other widgets that
+                         interface to various VW objects. Standard WxWidgets events are provided for these widgets. Requires
+                         @strong{VNL,VW,VWGL,WxWidgets (with GL canvas)}.
+   @item @strong{VWXforms}: Provides a display class that opens an
+                            XForms window and provides the usual
+                            interactive features using the XForms event
+                            queue. This is not used anymore since XForms is pretty much
+                            dead. Requires @strong{VW,XForms}.
+@end itemize
+
+
+@subsection Hardware libraries
+The hardware libraries provide for image capture from a couple of
+devices as well as control of some robotic equipment:
+@itemize
+   @item @strong{VWMeteor}: Provides an image acquisition system for the Matrox Meteor (version 1)
+          frame grabber. This library can be compiled without the
+          card being present. Requires @strong{VW}.
+   @item @strong{VWFirewire}: Provides an image acquisition system for IEEE1394 (Firewire) digital
+          cameras (ie. not DV). This library cannot be compiled
+          without both libraw1394 and libdc1394, which provide the
+          low-level access to the Firewire device under Linux. Requires @strong{VW,libdc1394}.
+   @item @strong{VWYorick}: Support for controlling the Yorick series of
+Active Vision Platforms (see http://www.robots.ox.ac.uk/ActiveVision/Research/Yorick"). Requires @strong{VW}.
+   @item @strong{VWGTI}: Support for controlling the GTI mobile robot (see http://www.robots.ox.ac.uk/ActiveVision/Research/GTI"). This cannot be compiled on a machine that doesn't have both the transputers and the relevant driver code installed, since the
+compilation process attempts to download the control program onto the transputers. Requires @strong{VW}.
+@end itemize
+
+
+
+

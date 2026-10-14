@@ -1,0 +1,10 @@
+/** 
+ * @page VWFirewirePage VWFirewire
+ *
+ * The Firewire extension library provides a class to control a firewire (IEEE1394) 
+ * digital camera, and a sequencer that uses this class to grab images from one or 
+ * more cameras.
+ *
+ *     - VW::FirewireCamera : A class for controlling a firewire camera
+ *     - VW::SequencerFirewire : A sequencer that knows how to get images from firewire cameras
+ */

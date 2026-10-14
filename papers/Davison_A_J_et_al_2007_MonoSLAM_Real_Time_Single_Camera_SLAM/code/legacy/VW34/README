@@ -1,0 +1,71 @@
+                   Vision Workbench (VW) Libraries
+                   ===============================
+
+1. About the VW libraries
+
+This package provides a set of libraries that aid developement of computer
+vision applications. The first two are always required, and the remainder give
+additional functionality for capturing images, controlling bits of hardware
+and using various GUIs:
+  - VNL (Vision Numerics Library): Matrices, vectors and numerical algorithms
+  - VW: The heart of VW - image classes, image processing and view geometry
+  - X: Drawing into an X-window (2D)
+  - XForms: Drawing into an XForms window (2D)
+  - GTK: Provides GTK based interfaces and displays (2D and 3D)
+  - GLOW: Simple interfaces and displays for the GLOW toolkit based on Glut
+  - GL: 2D and 3D drawing using OpenGL
+  - Wx: 2D and 3D drawing using WxWidgets
+  - Firewire: Capture and control of IEEE1394 digital cameras
+  - Meteor: Capture from the Matrox Meteor frame-grabber
+  - Yorick: Control of the Yorick series of active stereo platforms
+  - GTI: Control of the GTI mobile robot
+
+
+2. Compilation
+
+We have not fully worked out the best way to use automake in a
+foolproof fashion regardless of the cionfiguration of the machine you
+have.  Follow the following steps:
+
+   Oa> remove acextra.m4 if it exists
+   0b> comment out the lines in configure.ac that refer to components
+you don't have on your machine (except the AM_CONDITIONAL lines).  For
+example few have installed Wx, and FC3/4 don;t support GTK 1.2.
+
+Now do the "normal" procedure:
+   1> ./bootstrap
+   2> ./configure
+   3> make
+   4> make install
+
+Note that the last step installs include files and libraries into the
+local tree in "./include" and "./lib" respectively.  Only after make
+install will changes to the library affect applications that
+compile/link against VW34, so it is important to remember to do this.
+
+By default the libraries are compiled with debugging symbols, but if
+you want to compile with full optimisation, use the additional
+configure flags:
+   ./configure CXXFLAGS=-O6 CFLAGS=-O6
+
+
+3. License
+
+Each library directory contains a file COPYING which specifies the
+terms under which the library may be used and copied.
+
+
+4. Documentation
+
+This package contains documentation in source form. To create readable
+documentation from these sources requires a version of the program
+Doxygen, available from http://www.doxygen.Xxx/xxx/xxx. Simply type
+'make docs' in this directory.
+
+
+5. Maintainer
+
+This package is maintained by the members of the Active Vision Lab,
+University of Oxford:
+
+http://www.robots.ox.ac.uk/ActiveVision

@@ -1,0 +1,496 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Lesson 3: Adding features to our program
+</h2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson2/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson2/index.html">Lesson 2</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson4/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson4/index.html">Lesson 4</a>
+</td>
+</tr></table>
+</p>
+
+<p>
+<table cellpadding=3 cellspacing=5 border=6>
+<tr>
+<th>Code</th>
+<th>Reference</th>
+<th>Sidebars</th>
+</tr>
+<tr>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelglow.cpp">mandelglow.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.h">mandeldata.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.cpp">mandeldata.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.h">mandelwind.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.cpp">mandelwind.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="Makefile">Makefile</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/Glow.html">class Glow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowIdleReceiver.html">class GlowIdleReceiver</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowMenu.html">class GlowMenu</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowMenuMessage.html">class GlowMenuMessage</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowMenuReceiver.html">class GlowMenuReceiver</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowWindow.html">class GlowWindow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/TReceiver.html">class TReceiver</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/TSender.html">class TSender</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="side_sendreceive.html">Senders and Receivers</a>
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+This lesson describes some additional basic user interface features. We will extend the user interface by adding contextual menus, and implement background processing so that we can interact with the window while it is still calculating. In the process, we'll see how to use GLOW menus and idle events, and look at how to implement a Receiver, which is something that we'll do a lot of when we start using widgets. At the end of this lesson, you should have a grasp of how to manage menus, and an understanding of GLOW's generalized event reporting mechanism.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Building a Menu</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+GLUT lets you create simple menus and attach them to mouse clicks in a window. GLOW provides an elegant object-oriented API for handling menus, and includes several features that were left out of GLUT. We'll create a simple set of menus for controlling the Mandelbrot Set viewer. The menus will let us reset the magnification to its initial state, change the color scheme, or quit the program. We'll have the menu pop up when the user clicks the left mouse button in the view window.
+</p>
+
+<p>
+<b>Creating a simple menu</b>
+</p>
+<p>
+To see how menus are implemented, first look at <tt>mandelwind.cpp</tt>. The constructor for the <tt>MandelWind</tt> class has been expanded to include some menu code. First, a menu is created by constructing a <tt>GlowMenu</tt> object.
+</p>
+<blockquote>
+<pre>GlowMenu* menu = new GlowMenu;</pre>
+</blockquote>
+<p>
+Next, two menu entries are added. The first parameter to the <tt>AddEntry()</tt> method is the text for the menu item, and the second is an identifying integer constant. When GLOW reports that a menu item has been chosen, it identifies the item using this constant.
+</p>
+<blockquote>
+<pre>menu-&gt;AddEntry("Reset zoom", RESETZOOM_ITEM);
+menu-&gt;AddEntry("Quit", QUIT_ITEM);</pre>
+</blockquote>
+
+<p>
+<b>Creating a submenu</b>
+</p>
+<p>
+Next, we create a second menu, called <tt>colorMenu</tt>, and add four items to this menu.
+</p>
+<blockquote>
+<pre>GlowMenu* colorMenu = new GlowMenu;
+colorMenu-&gt;AddEntry("Red", RED_ITEM);
+colorMenu-&gt;AddEntry("Green", GREEN_ITEM);
+colorMenu-&gt;AddEntry("Blue", BLUE_ITEM);
+colorMenu-&gt;AddEntry("Multi", MULTI_ITEM);</pre>
+</blockquote>
+<p>
+The color menu will be a submenu of the main menu. The next line calls <tt>AddSubMenu</tt>, which adds a menu item to the main menu, and specifies that the item should pop up the color submenu.
+</p>
+<blockquote>
+<pre>menu-&gt;AddSubmenu("Color", colorMenu);</pre>
+</blockquote>
+<p>
+The next line marks the first item of the color submenu.
+</p>
+<blockquote>
+<pre>colorMenu-&gt;SetItemMark(0, "=&gt; ");</pre>
+</blockquote>
+<p>
+A mark is a short string that is prepended before the menu item text. It isn't part of the item name (and won't show up if you query the item for its name), but is a separate attribute of the menu item. You can mark and unmark menu items, and you can also query items to determine whether they are marked. For our purposes, we will mark the menu item corresponding to the current color setting. To start off, that will be red. Notice that menu items are numbered starting from 0.
+</p>
+
+<p>
+<b>Linking menus to mouse clicks</b>
+</p>
+<p>
+The next line binds the main menu we created to clicks of the right mouse button in our window.
+</p>
+<blockquote>
+<pre>SetMenu(Glow::rightButton, menu);</pre>
+</blockquote>
+<p>
+This has the effect of intercepting mouse events. Instead of reporting the events in <tt>OnMouseUp</tt> and <tt>OnMouseDown</tt>, GLOW will pop up the menu. You may bind a menu to any number of mouse buttons in any number of windows. If you call <tt>SetMenu()</tt> and give it the null pointer for the menu parameter, it will unbind the menu from that mouse button, causing that mouse button to report events normally again.
+</p>
+<p>
+Menu hits are reported as events, so we need to update the event mask to receive them. Note that the constant <tt>Glow::menuEvents</tt> has been added to the event mask.
+</p>
+<blockquote>
+<pre>MandelWind::MandelWind(MandelData* data) :
+GlowWindow("Mandelglow", GlowWindow::autoPosition, GlowWindow::autoPosition,
+    data-&gt;Width(), data-&gt;Height(), Glow::rgbBuffer | Glow::doubleBuffer,
+    Glow::mouseEvents | Glow::dragEvents | Glow::menuEvents)
+{ ...</pre>
+</blockquote>
+<p>
+The last two lines involve setting up notification for when a menu item is selected. We'll look at this process in the next section.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowMenu.html">class GlowMenu</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWindow.html">class GlowWindow</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Menu Events</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Now that we've built a menu, we need a way to be notified when a menu item is hit. There are several ways we can do this, but the best and most flexible is to create a menu receiver. A menu receiver is an object that inherits from the abstract class <tt>GlowMenuReceiver</tt>, and implements its <tt>OnMessage()</tt> method. This method is called when a menu item is chosen.
+</p>
+
+<p>
+<b>Configuring a class to receive menu events</b>
+</p>
+<p>
+Take a quick look at <tt>mandelwind.h</tt>. Notice that the MandelWind class, in addition to inheriting from <tt>GlowWindow</tt>, now also inherits from <tt>GlowMenuReceiver</tt>. Furthermore, it implements the method <tt>OnMessage(const&nbsp;GlowMenuMessage&)</tt>. (The class also inherits <tt>GlowIdleReceiver</tt> and implements another <tt>OnMessage()</tt> method-- we'll look at those later.)
+</p>
+<blockquote>
+<pre>class MandelWind :
+public GlowWindow, public GlowMenuReceiver, public GlowIdleReceiver
+{ ...
+    virtual void OnMessage(const GlowMenuMessage& message);
+    virtual void OnMessage(const GlowIdleMessage& message);
+  ...</pre>
+</blockquote>
+<p>
+Now let's go back to <tt>mandelwind.cpp</tt> and look at those last two lines of the <tt>MandelWind</tt> constructor.
+</p>
+<blockquote>
+<pre>menu-&gt;Notifier().Bind(this);
+colorMenu-&gt;Notifier().Bind(this);</pre>
+</blockquote>
+<p>
+The <tt>GlowMenu::Notifier()</tt> method retuns a reference to a sender object associated with the menu. A sender is a descendent of <tt>TSender</tt>, and its role is to send messages to receivers like the <tt>GlowMenuReceiver</tt> we created. Whenever a menu item is selected, the menu's sender will broadcast a message to any receivers listening to the sender. We call the <tt>Bind()</tt> method of the sender associated with each menu to bind it to the receiver, which is <tt>this</tt>, the window object. Now our window object will receive notifications of menu hits.
+</p>
+
+<p>
+<b>Writing the receiver method</b>
+</p>
+<p>
+To actually receive the message, we implement the <tt>OnMessage()</tt> method.
+</p>
+<blockquote>
+<pre>void MandelWind::OnMessage(const GlowMenuMessage& message) {
+    switch (message.code) {
+        case RESETZOOM_ITEM:
+            ResetZoom();
+            break;
+        case QUIT_ITEM:
+            exit(0);
+            break;
+        case RED_ITEM:
+            SetColor(255, 0, 0);
+            message.menu-&gt;UnmarkAllItems();
+            message.menu-&gt;SetItemMark(0, "=&gt; ");
+            break;
+  ...</pre>
+</blockquote>
+<p>
+Notice that it takes a parameter of type <tt>const&nbsp;GlowMenuMessage&</tt>, a reference to a structure that contains information about the menu item hit. The <tt>code</tt> field contains the identifier for the menu item. We switch on it to handle each item. Note that we call <tt>std::exit()</tt> in response to the "quit" menu item. This is a reasonable way to exit a GLOW program. Note also that selecting an item of the color submenu causes that item to be marked.
+</p>
+<p>
+The message structure we receive gives several additional pieces of information about the menu hit, including a pointer to the menu object hit, a pointer to the window object that spawned the menu, and the x and y window coordinates of the mouse click that popped up the menu.
+</p>
+
+<p>
+<b>So what are these senders and receivers?</b>
+</p>
+<p>
+Senders and receivers are objects that are descendents of the templates <tt>TSender</tt> and <tt>TReceiver</tt>. The sidebar "Senders and Receivers" gives more detailed information about how these classes work. Basically, they implement a typechecked broadcaster-listener system. You can set up communication lines between senders and receivers using the <tt>Bind()</tt> method of the sender. Then, you can send a message, which is a C++ object, using the sender, and the sender will invoke the <tt>OnMessage()</tt> method of each receiver it is bound to. Senders and receivers are typechecked, so you can bind a sender only to receivers that are capable of receiving the message type sent by that sender.
+</p>
+<p>
+Every <tt>GlowMenu</tt> object has associated with it a sender. You can get a reference to it using the <tt>Notifier()</tt> method. This sender is capable of sending messages of type <tt>const&nbsp;GlowMenuMessage&</tt>; thus, you can bind it to receivers of that type of message. GLOW provides a typedef for these kinds of receivers: <tt>GlowMenuReceiver</tt>. When GLOW detects a menu selection, it gathers information about the event, and then causes the menu's sender to broadcast a message to all receivers bound to it. In our case, there is one receiver bound to it: the window object.
+</p>
+
+<p>
+<b>You said there were other ways to receive menu notifications...</b>
+</p>
+<p>
+I guess I did. There are two other ways. First, you can have the menu call a special virtual method on the GlowWindow object that spawned the menu, <tt>OnDirectMenuHit()</tt>.
+</p>
+<blockquote>
+<pre>virtual void OnDirectMenuHit(const GlowMenuMessage& message);</pre>
+</blockquote>
+<p>
+This method also reports the details of the menu item hit by passing a <tt>const&nbsp;GlowMenuMessage&</tt> parameter. To switch to this style of reporting, call <tt>SetBindState(GlowMenu::bindSubwindow)</tt> on the menu object. Finally, you can subclass <tt>GlowMenu</tt> and override the <tt>OnHit()</tt> virtual method.
+</p>
+<blockquote>
+<pre>virtual void OnHit(int code, GlowSubwindow* window, int x, int y);</pre>
+</blockquote>
+<p>
+Recall that GlowSubwindow is a superclass of GlowWindow. We could easily have used the <tt>bindSubwindow</tt> style of reporting, since we were using the window as our receiver anyway. However, I wanted to demonstrate the receiver method because it is used quite often elsewhere in GLOW, particularly for reporting widget events.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.h">mandelwind.h</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowMenu.html">class GlowMenu</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowMenuMessage.html">class GlowMenuMessage</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowMenuReceiver.html">class GlowMenuReceiver</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWindow.html">class GlowWindow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/TSender.html">class TSender</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/TReceiver.html">class TReceiver</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Sidebar: <b><a href="side_sendreceive.html">Senders and Receivers</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Background processing</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Next, we'll add background processing to the program. The problem we're trying to address is that computing an entire image of the Mandelbrot Set, especially when you've zoomed in considerably, may take some time. Instead of "hanging" while that computation is going on, it would be better to show the progress of the computation and allow the user to continue to interact with the program during that time.
+</p>
+
+<p>
+<b>Idle event receivers</b>
+</p>
+<p>
+To accomplish this, we'll cause our window object to receive idle events. Idle events are raised continually when the application is idle (i.e. no other events are pending). What we'll do is respond to an idle event by performing a "little bit" of the computation, and then updating the image to show the progress. We'll then give control back to GLOW so it can look for other events such as mouse clicks. If the program is still idle, another idle event will be raised, and we can do a little bit more of the computation, until it is finished.
+</p>
+<p>
+First, let's go back to <tt>mandelwind.h</tt>. The <tt>MandelWind</tt> class, in addition to <tt>GlowWindow</tt> and <tt>GlowMenuReceiver</tt>, also inherits from <tt>GlowIdleReceiver</tt>. An idle receiver must implement the method <tt>OnMessage(const&nbsp;GlowIdleMessage&)</tt>. This method is called whenever the receiver receives an idle event.
+</p>
+<blockquote>
+<pre>class MandelWind :
+public GlowWindow, public GlowMenuReceiver, public GlowIdleReceiver
+{ ...
+    virtual void OnMessage(const GlowIdleMessage& message);
+  ...</pre>
+</blockquote>
+
+<p>
+<b>Raising and handling idle events</b>
+</p>
+<p>
+Go back to <tt>mandelwind.cpp</tt>. Before we look at the new <tt>OnMessage()</tt> method, let's take a brief look at <tt>OnEndPaint()</tt>. Note that we've replaced the <tt>MandelData::Recalc()</tt> call to a small number of calls to the method <tt>RecalcOneLine()</tt>. This method recalculates a single line of the Mandelbrot image. So now, instead of recomputing the entire image before redrawing, the program computes only a small fraction of the image.
+</p>
+<p>
+However, note the new lines added just below, the calls to <tt>Glow::RegisterIdle()</tt> and <tt>Glow::UnregisterIdle()</tt>.
+</p>
+<blockquote>
+<pre>
+if (!_data-&gt;IsDataValid()) {
+    // Recompute a small number of lines
+    for (int i=0; i&lt;10; ++i) _data-&gt;RecalcOneLine();
+    // Rerender image here
+      ...
+    // Make sure idle receiver is registered
+    Glow::RegisterIdle(this);
+} else {
+    // Done computing, make sure idle receiver is unregistered
+    Glow::UnregisterIdle(this);
+}</pre>
+</blockquote>
+<p>
+<tt>RegisterIdle()</tt> makes the given idle receiver eligible to receive idle events, and <tt>UnregisterIdle()</tt> makes it ineligible. So after computing a small fraction of the image, we make sure the window is receiving idle events, and if the image has finished being computed, we turn off idle events. It doesn't hurt to register an idle receiver that is already registered or unregister a receiver that is not registered.
+</p>
+<p>
+Now, take a look at the idle event receiving method, <tt>OnMessage(const&nbsp;GlowIdleMessage&)</tt>.
+</p>
+<blockquote>
+<pre>void MandelWind::OnMessage(const GlowIdleMessage& message)
+{
+    Refresh();
+}</pre>
+</blockquote>
+<p>
+All it does is call Refresh(). This, in turn, causes the window to be redrawn, which, in turn, will cause the next small fraction of the image to be computed.
+</p>
+
+<p>
+<b>When are idle events raised?</b>
+</p>
+<p>
+Idle events are raised continuously when no other events are pending. This means, when the user isn't doing anything to cause user interface events to be raised, and when no timer events or other periodic events are being raised. So when the system is idle, you'll get a continuous stream of idle events. But while, say, the user is dragging the mouse in a window that receives drag events, idle events may not be raised at all. Make sure you keep this in mind when using idle events.
+</p>
+
+<p>
+<b>What about threading?</b>
+</p>
+<p>
+Well, that's a good question. Unfortunately, the current version of GLOW isn't thread-safe. Although that can be fixed, a bigger problem is that, as far as I can tell, thread-safety isn't in the GLUT specification either, so the underlying GLUT implementation may not be re-entrant. This doesn't necessarily mean you can't write a multithreaded application based on GLOW, but only one thread can be interacting with GLOW at a time. This means, in order for a thread to communicate with the thread that is running the GLOW main loop, you'll need to implement idle events anyway, and handle the synchronization and communication during idle time. I've done this once before. (It seems like it's the only way to write a program that enters a GLUT loop but is still able to continuously read from standard in.) But it's not the prettiest solution.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.h">mandelwind.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Glow.html">class Glow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowIdleReceiver.html">class GlowIdleReceiver</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Putting it together</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Once again, we don't need to modify our main function in <tt>mandelglow.cpp</tt>. All the modifications were done to the window class.
+</p>
+<p>
+Compile and run the program. Notice now that the window recalculates and updates in stages. The program doesn't "hang" while recalculating, so you can continue to zoom in or out without waiting for each image to be fully recomputed. You now also have the capability for further controlling the program through menus, and you can quit the program gracefully using the quit item.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelglow.cpp">mandelglow.cpp</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Where to go from here</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Now that you can create menus, you can experiment with adding additional commands to the program by adding more menu items. Try adding an item that saves the current image to a file on the disk.
+</p>
+<p>
+Here's a harder exercise. You should now have enough knowledge about GLOW to implement a "progress bar" window for recomputation. Create a second window class that displays a progress bar. Have the window appear when a recomputation begins, update while the computation is taking place, and then disappear when the recomputation is complete. You can determine the status of the computation by querying the <tt>Height()</tt> and <tt>LinesRemaining()</tt> methods of <tt>MandelData</tt>.
+</p>
+<p>
+GLOW also provides a timer event mechanism that allows you to schedule a piece of code for execution sometime in the future. You schedule a timer by implementing a <tt>GlowTimerReceiver</tt> and registering it with <tt>Glow::RegisterTimer()</tt>. Try experimenting with timers.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandeldata.h">mandeldata.h</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/Glow.html">class Glow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowTimerMessage.html">class GlowTimerMessage</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowTimerReceiver.html">class GlowTimerReceiver</a></b>
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson2/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson2/index.html">Lesson 2</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson4/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson4/index.html">Lesson 4</a>
+</td>
+</tr></table>
+</p>
+
+
+<hr size=2>
+
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

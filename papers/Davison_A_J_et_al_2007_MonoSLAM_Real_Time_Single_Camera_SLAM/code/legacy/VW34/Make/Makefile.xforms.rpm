@@ -1,0 +1,19 @@
+FORMSRPMNAME = VWXForms
+FORMSRPMFILES = xforms.files
+
+# The RPM requires uptodate tgz file
+xformsrpm: ~/.rpmmacros rpmcommon
+#   1. Create list of files to include in rpm
+	cd $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW; \
+	cat $(FORMSRPMFILES) > tmp.txt; \
+	/bin/sed -e 's/^/\/usr\/include\/VW\//' tmp.txt > headerfiles.txt; \
+#   2. Set the version string in the spec file and cat together
+	/bin/sed -e 's/--VERSION--/'$(VERSION)'/' -e 's/--RELEASE--/'$(TODAY)'/' $(FORMSRPMNAME)/$(FORMSRPMNAME).spec > $(RPMBUILDROOT)/SPEC/$(FORMSRPMNAME)-$(VERSION)-$(TODAY).spec.header; \
+	cat $(RPMBUILDROOT)/SPEC/$(FORMSRPMNAME)-$(VERSION)-$(TODAY).spec.header $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW/headerfiles.txt > $(RPMBUILDROOT)/SPEC/$(FORMSRPMNAME)-$(VERSION)-$(TODAY).spec; \
+#   2. make the RPM and copy it back
+	cd $(RPMBUILDROOT)/SPEC; \
+	rpmbuild -ba -vv $(FORMSRPMNAME)-$(VERSION)-$(TODAY).spec;
+	cp $(RPMBUILDROOT)/RPMS/i386/$(FORMSRPMNAME)-$(VERSION)-$(TODAY).i386.rpm $(VWDIR)
+	cp $(RPMBUILDROOT)/BUILD/VW-$(VERSION)/$(FORMSRPMNAME)-$(VERSION)-$(TODAY).* $(VWDIR)
+	more $(FORMSRPMNAME)-$(VERSION)-$(TODAY).report
+

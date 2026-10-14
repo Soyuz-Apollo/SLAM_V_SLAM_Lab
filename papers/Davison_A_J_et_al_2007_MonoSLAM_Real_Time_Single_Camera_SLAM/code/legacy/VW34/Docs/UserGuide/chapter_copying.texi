@@ -1,0 +1,57 @@
+The VW libraries are made freely available in the hope that they will be
+useful, but with no guarantee that they do anything useful and no
+warrantee in the event of failure or damage caused through their
+use. Code under our direct control is licensed under the LGPL (decribed
+below), but other code that is included or linked against may have its
+own terms and conditions which should be checked before copying. At the
+present time every effort has been made to ensure that all code that is
+used, and all libraries on which VW depends are licensed under the LGPL
+or under even less restrictive terms.
+
+@section What is the GPL?
+
+A detailed description of the aims of the GPL and LGPL can be found on the @uref{http://www.gnu.org,GNU.org} web pages. The reasons why this license was selected for VW are given below.
+
+A copy of the LPGL license can be found in appendix @xref{LGPL}.
+
+The LGPL (Lesser General Public License) stipulates that this library is freely available, and can be modified and redistributed freely, providing all copyright and license statements are preserved. This means that anyone can use the library, but only the copyright holders (Oxford University) can change the licensing terms or release a commercial version of the code.
+
+Unlike the more restrive GPL license, the LGPL states that although the library must always be free and retain all licensing and copyright statements, it can be used to build commercial applications under any license - ie. the fact that the VW libraries are LGPL has no impact on user applications. 
+
+@section Why use the LGPL for VW?
+
+Our choice of the LGPL for VW code is motivated by the need for us (and collaborating organisations/companies) to retain the ability to commercialise applications in the future. Releasing VW under the GPL would prevent this, since all code linking against a GPL library must also be GPL (and this is the main difference between GPL and LGPL).
+
+VW could have been released under a completely closed license,
+preventing 3rd parties releasing any code without the permission of Oxford
+University. However, there is little to be gained by this. Most of the
+algorithms in VW are not novel in any way, and other code to achieve
+such tasks is freely available elsewhere. For computer vision tasks, the
+novelty is in the user applications, not the underlying image and
+feature classes. Whilst the applications may have commercial value, the
+core libraries do not, and the LGPL neatly encapsulates this distinction
+--- the library is free, but the applications might not be. 
+
+
+@section What does this mean for the user?
+
+Use of the LGPL has some ramifications for end-users, summarised below.
+
+@subsection things you can do:
+
+@itemize @bullet
+   @item Write free (GPL, LGPL or any other license) applications that link against VW.
+   @item Write (and sell) commercial applications which link against VW.
+   @item Redistribute VW, providing all license and copyright statements are preserved.
+   @item Change VW, providing your changes are also made freely available under the terms of the LGPL.
+@end itemize
+
+@subsection things you cannot do:
+
+@itemize @bullet
+   @item  Sell VW. A charge may be made for media or distribution costs, but not for the software itself.
+   @item Distribute only a binary (compiled) version. Whenever VW is distributed, the source-code must also be made freely available (including any changes you have made). This need not be on the same media as the binary copy. 
+@end itemize
+
+Detailed descriptions of what can and cannot be done with LGPL'ed code
+can be found in the license itself (@pxref{LGPL}). 

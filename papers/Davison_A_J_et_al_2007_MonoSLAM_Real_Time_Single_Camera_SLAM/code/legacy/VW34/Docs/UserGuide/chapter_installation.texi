@@ -1,0 +1,28 @@
+@section Compiling and installing on Linux
+
+Compilation on Linux/Unix uses the standard GNU build tools:
+ @itemize
+   @item ./configure
+   @item make
+   @item make install
+ @end itemize
+By default, the libraries and headers are installed in the "lib" and "include" subdirectories respectively. To install into your system directories configure as:
+ @itemize
+   @item ./configure --prefix=/usr
+ @end itemize
+
+
+If the configure fails, or configure does not exist in the local directory,
+first run
+ @itemize
+   @item  ./bootstrap
+ @end itemize
+
+By default the libraraies are compiled with debugging symbols, but if you want
+to compile with full optimisation, use the additional configure flags:
+   ./configure CXXFLAGS=-O6 CFLAGS=-O6
+
+
+@section Compiling and installing on Windows
+
+After unzipping the archive, you should find a standard Visual Studio "solution" file in the top-level directory. This provides complete build environments for both debug and release versions of the libraries. Each library can be built in isolation, or the whole package can be built at once. The resulting libraries are stored in the "lib" subdirectory and have a "d" suffix (VNLd.lib, VWd.lib, VWGLd.lib etc) compared to the optimised "release" versions (VNL.lib, VW.lib, VWGL.lib etc). Similarly, all headers are stored in the "include" subdirectory, and these must be added to your library and include paths for any applications.

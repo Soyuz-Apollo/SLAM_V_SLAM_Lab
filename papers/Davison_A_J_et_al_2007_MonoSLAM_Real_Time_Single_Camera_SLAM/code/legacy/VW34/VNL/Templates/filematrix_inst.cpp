@@ -1,0 +1,5 @@
+#include <VNL/filematrix.tpp>
+
+VNL_FILE_MATRIX_INSTANTIATE(float);
+VNL_FILE_MATRIX_INSTANTIATE(double);
+VNL_FILE_MATRIX_INSTANTIATE(long double);

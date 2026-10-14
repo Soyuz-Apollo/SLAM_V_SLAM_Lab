@@ -1,0 +1,93 @@
+### if GTK set check that files exist
+		GTKINC = $(shell gtkmm-config --cflags)
+		GTKLIB = $(shell gtkmm-config --libs)
+ifeq ($(GTK), true)
+	ifeq ($(notdir $(shell which gtkmm-config 2>/dev/null)), gtkmm-config)
+		GTKINC = $(shell gtkmm-config --cflags)
+		GTKLIB = $(shell gtkmm-config --libs)
+	else
+		GTK = false
+	endif
+	ifeq ($(GTKGL), true)
+		ifneq (/usr/include/gtkgl--, $(wildcard /usr/include/gtkgl--))
+			GTKGL = false
+		endif		
+	endif
+endif
+
+### if FORMS set check that files exist
+ifeq ($(FORMS), true)
+	ifneq (/usr/include/forms.h, $(wildcard /usr/include/forms.h))
+		FORMS = false
+	endif
+endif
+
+
+### Check Firewire device
+ifeq ($(IEEE1394), true)
+	ifneq (/dev/raw1394, $(wildcard /dev/raw1394))
+		IEEE1394 = false
+	endif
+	ifneq (/dev/video1394, $(wildcard /dev/video1394))
+		IEEE1394 = false
+	endif
+endif
+
+### Check Meteor device
+ifeq ($(METEOR), true)
+	ifneq (/dev/mmetfgrab0, $(wildcard /dev/mmetfgrab0))
+		METEOR = false
+	endif
+endif
+
+### Check PMAC device (Yorick)
+ifeq ($(YORICK), true)
+	ifneq (/dev/pmac, $(wildcard /dev/pmac))
+		YORICK = false
+	endif
+endif
+
+### Check Transputer LINK device (GTI)
+ifeq ($(GTI), true)
+	ifneq (/dev/link0, $(wildcard /dev/link0))
+		GTI = false
+	endif
+endif
+
+### Configure numerics
+VXLPATH = /usr
+ifeq ($(VXLPATH)/include/vnl, $(wildcard $(VXLPATH)/include/vnl))
+	VNL = true
+	VXLINC = -I$(VXLPATH)/include/vcl
+#	VXLLIB = -L$(VXLPATH)/lib
+else
+VXLPATH = /data/lav-target/vxl/redhat-6.2/vxl-1.0-beta
+ifeq ($(VXLPATH)/vxl/vnl, $(wildcard $(VXLPATH)/vxl/vnl))
+	VNL = true
+	VXLINC = $(VXLPATH)/vxl
+	VXLLIB = -L$(VXLPATH)/vxl/lib/Linux2-egcs.noshared \
+                 -L$(VXLPATH)/v3p/lib/Linux2-egcs.noshared	
+else
+VXLPATH = /data/lav-target/vxl/redhat-7.1/vxl-1.0-beta
+ifeq ($(VXLPATH)/vxl/vnl, $(wildcard $(VXLPATH)/vxl/vnl))
+	VNL = true
+	VXLINC = $(VXLPATH)/vxl
+	VXLLIB = -L$(VXLPATH)/vxl/lib/Linux2-gcc-2.75.noshared \
+                 -L$(VXLPATH)/v3p/lib/Linux2-gcc-2.75.noshared	
+else
+VXLPATH = /home/ian/src/vxl-1.0-beta
+ifeq ($(VXLPATH)/vxl/vnl, $(wildcard $(VXLPATH)/vxl/vnl))
+	VNL = true
+	VXLINC = $(VXLPATH)/vxl
+	VXLLIB = -L$(VXLPATH)/vxl/lib/Linux2-egcs.noshared \
+                 -L$(VXLPATH)/v3p/lib/Linux2-egcs.noshared	
+else
+	VNL = false
+endif
+endif
+endif
+endif
+
+
+
+

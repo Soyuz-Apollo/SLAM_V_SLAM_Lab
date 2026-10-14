@@ -1,0 +1,260 @@
+-------------------------------------------------------------------------------
+Changes History (read in reverse order!)
+-------------------------------------------------------------------------------
+
+
+Changes for version 0.9 (1 Oct 2005) CVS tar rel-0-9
+--------------------------------------------------------
+
+- Fixed int/unsigned int bug in elliptical_search (it never though the search
+region was outside the image)
+- Defined Motion_Model_Creator and Feature_Measurement_Model_Creator. Changed
+initialisation code to use these, and changed MonoSLAM constructor to take the
+names of the initialisation files, and these creators. Constructor now also
+gets the image height and width from the feature measurement model.
+- Added a ZeroOrder_ThreeD_Motion_Model
+- Changed MonoSLAM::GoOneStep to estimate the velocity from successive positions
+(since there is no no guarantee of velocity being in the state vector)
+- Changed wide-angle camera models to derive from a common base class, which
+uses a generic camera model
+- Made a start on adding Doxygen documentation throughout
+- Added more compile warnings and removed unused parameters
+- Other small changes and bug fixes
+
+Changes for version 0.9 (30 Sept 2005) CVS tag pre-0-9
+--------------------------------------------------------
+
+- Converted to GNU autotools build system (PAS)
+- The source code was essentially completely reworked for this version
+  by AJD, with many improvements, simplifications and changes, including:
+  - Replacement of use of Horatio vision library by VW in full C++.
+    Numerics now down with VNL (from VW).
+    Single Camera SLAM directly supported in MonoSLAM/ directory.
+
+
+Changes for version 0.81 (June 11 2001) CVS tag rel-0-81
+--------------------------------------------------------
+
+Compiles on RedHat 7.1
+Added some automatic documentation to SceneLib/Scene/scene_base.h
+Added postscript output support in Scene/postscript.h
+3D head point feature measurement class in SceneHead/models_head.h.
+Made 3D head point class and 2D both children of 
+	Head_Point_Feature_Measurement_Model.
+
+Changes for version 0.80 (2001/02/07) CVS tag rel-0-80
+------------------------------------------------------
+
+Joss's bugfixes to Scene/kalman.cpp total_update_filter_fast() 
+and Scene/bits.cpp hor_matq_inv_any().
+Changed hor_trace in Scene/bits.cpp so it actually calculates trace!
+Fixed bugs in AMTBT and ATMB in Scene/bits.cpp
+Quaternion normalisation for 3D mode.
+Created SceneLib/Docs directory and wrote models.tex
+Fixed longstanding bug in 3d.cpp giving warning messages (errors in RH 7.0).
+
+Merged latest Nkita changes.
+- SceneHead/head.h: new important function check_miss_measurement_angular()
+  to test for innovation gate failure even if left and right both match.
+
+3D!
+- 3D motion models: many changes in Scene/bits.cpp (quaternion functions)
+  New ThreeD_Motion_Model class in Scene/models_base.h
+
+Incorporated into CVS 18/11/2000:
+Since new changes incorporated:
+- In Scene/kalman.cpp:
+  - FAST filter now works with multiple observations (or always did), but
+    is more prone to numerical error (poss. due to non-linearity).  Use with
+    small time steps only.
+  - Seems (90% certainty) to work with running two filter methods at once and
+    swapping the state and covariance in and out of the scene object.
+- Default filter type now forced in kalman_form.cpp, so it is set by the form
+  (formkalman.c) in formdesign.  Warning: if it is set to NONE in the form
+  there will be an undefined result (the form will say `NONE' but one of the
+  filters will still be running).
+- New horatio function in bits: hor_print_error (), for use in assertions.
+
+Merging Joss's changes and making further improvements:
+- Changed waypoints so they now use normal state vector rather than
+  position state form.
+- Generalised func_zeroedxv etc. even further by introducing functions
+  func_xpredef(), func_xvredef_...() in models_base.h which generally deal 
+  with the situation of how to calculate new robot state values if the origin 
+  of coordinates is arbitrarily redefined. This allows it to work for double 
+  robots as well.
+- Generalised EVENSPACE command in initialise_simulation to work for
+  POINTS in various dimensions.
+- Removed references to update_performance_info from kalman.cpp; now
+  no dependencies on XForms in Scene
+  update_performance_info now called locally
+- Removed constants from simul.h
+- initialise_visible_features removed from control_general.cpp;
+  go_vehicle returned to previous state
+- Created functions func_zeroedxv_and_dzeroedxv_by_dxv and
+		    func_zeroedyi_and_dzeroedyi_by_dxp_and_dzeroedyi_by_dyi
+  in Motion_Model and Feature_Measurement_Model classes respectively.
+  These calculate what happens if the axes are zeroed at a certain time:
+  i.e. redefined so that the robot is at the origin of coordinates.
+  This replaces hiEuc in a more general way, and provides the general zeroing
+  functionality I've wanted for a while.
+  Also can usually be called usefully as part of a measurement function
+  (see Head_Point_Feature_Measurement_Model::func_hi_and_...).
+- Created Waypoints class, replacing and tidying up functionality that was in 
+  control_general.cpp
+- Makefiles: simplified and improved; now just about right?
+
+Integrated Joss's first batch of additions:
+- In XFormsBits: forminspect, scene_inspect covariance inspector
+	         formkalman, kalman_form Kalman filter interaction
+- In Scene/bits.cpp: various new matrix functions
+- In Scene/control_general.cpp: EVENSPACE command when reading to initialise
+	Simulation: sets evenly-spaced feature distribution
+	Specific to HEAD_POINT at the moment.
+
+	In go_vehicle: in simulation automatically initialises features
+		close to robot: needs making into option or removing
+		from control_general I think.
+	
+	New initialise_feature 2 versions: new one initialises near features
+- In Scene/feature.cpp: Extra interfaces, "age" of features
+	New friends of MatrixBlock maybe not nice.
+- In Scene/kalman.cpp:
+	New filtering methods
+	Chosen between by means of flags: would be better to use derivation?
+	Can do two types of filtering at once and swap results in/out.
+	Now depends on more stuff; lots of headers.
+- In Scene/models_base.h:
+	Extra, not really general function, hiEuc (Euclidean distance)
+- In Scene/scene_base.h:
+	New access function get_Pyjyk: better to just be in Scene_Single
+		I think.
+	predict_single_feature_measurements(): should definitely not be in
+	Scene.
+- In Scene/scene_single.h, .cpp:
+	Implementations of get_Pyjyk, predict_single_feature_measurements()
+	New function age_all_features: age of features (how long since 
+		measured).
+	Slight modifications to construct_total_covariance(): should be the
+		same though.
+	Modifications to fill_states and fill_covariances: can partially fill 
+		the states.
+	Implemented age_features 
+		(and call from successful_measurement_of_feature())
+- In Scene/simul.h
+	New constants.
+
+Changes for version 0.71 (2000/10/07) CVS tag rel-0-71
+------------------------------------------------------
+
+- Moved SceneApp/make to SceneLib
+
+Changes for version 0.70 (2000/10/04) CVS tag rel-0-70
+------------------------------------------------------
+
+- Split Application distribution from main library
+- Created new libraries SceneHead and SceneImproc
+- Completely revamped Makefiles and READMES
+- Put under CVS control
+
+Changes for version 0.63 (2000/7/24):
+-------------------------------------
+
+- Added GTI motion model
+- Renamed directories (e.g. ETLRobot, ETLDouble)
+
+Changes for version 0.62 (99/10/15):
+------------------------------------
+
+- Experimental DSM implementation (Decoupled Stochastic Mapping, a method
+  by Leonard and Feder of MIT for improving map updating efficiency by
+  division into submaps). So far only uses "cross-map relocation"
+  rather than "cross-map updating".
+  In Robot/ extra version of excutable filsim_dsm uses DSM
+  (filsim remains, using a standard single map).	
+- Generalisation of Scene class hierarchy to allow DSM and other 
+  methods using submaps. The former simple Scene class is now known
+  as Scene_Single.
+
+Changes for version 0.61 (99/10/1):
+-----------------------------------
+
+- Waypoint browser allows runtime manipulation of waypoint list.
+- Moved calculation of nu (innovation) to feature measurement models:
+  before was done in kalman.cpp, and would be incorrect for measurements 
+  that weren't angular.
+- In Double/ allowed for marker to be placed off-centre on second robot
+
+Changes for version 0.60 (99/9/23):
+----------------------------------
+
+- Internal_Measurement_Model now generally supports measurements just 
+  depending on the robot state. Specific instantiation 
+  Double_Marker_Internal_Measurement_Model for inter-robot measurement 
+  in Double/
+- In Robot and Double, button added to lock steering and turret controls 
+  together
+- Fixed small bug in Double/double_robot.cpp
+
+Changes for version 0.52 (99/9/5):
+----------------------------------
+
+- Go Vehicle now redisplays axes and true points at each step
+
+Changes for version 0.51:
+-------------------------
+
+- Double/ now working (so far without measurements between one robot
+  (and the other)
+- Loop-round now built in to waypoint navigation
+
+Changes for version 0.5:
+------------------------
+
+- Simulation and Robot are now derived from the base class Sim_Or_Rob
+  rather than having typedefs
+- Created Class/control_general.cpp and put many functions there
+- Automatic navigate to next waypoint button
+- Improved state output functions
+- Added show robot and head odometry buttons
+- Added "destructors" for Motion_Model and Feature_Measurement_Model
+- Added to models: func_xpose_and_Rpose(), func yipose()
+- Split models.h models.cpp into separate models files
+- Separate draw_axes function now in 3d.cpp
+- Added write_patch to Robot so can write patches for known features
+- Added auto_select_feature to scene.cpp
+- Hacked required_time a bit to make up for slow vehicle start
+- Found bug in control.cpp: need to test if no measurements and not call
+  total_update_filter
+- Added set_all_vehicle_sliders_from_parameters() in control.cpp
+- Navigate to waypoint in control.cpp and models.cpp
+- models.h is now included by robot.cpp and head.cpp
+- Added test for visibility of point features
+- Added initialise_auto_new_features() to initialise several new features
+- Added support for known features
+- Added Double directory, and Double_Motion_Model to models.
+- Reorganised READMEs a bit
+
+Changes for version 0.4:
+------------------------
+
+- Fixed bug: move hor_mat_free_list(hL, ShL, NULL); to end of measure_feature
+  in robot.cpp
+- Added more functions to 3d.cpp to support 1D feature types
+
+Changes for version 0.3:
+------------------------
+
+- Now not using XForms images any more, but still XForms canvases
+- Images displayed using Horatio function to convert to X format
+- Added read images from file
+- Added dialogue box at startup about robot modes
+
+Changes for version 0.2:
+------------------------
+
+- Using XForms images
+- Using one-off grabbing
+- Image transformations (to cope with non-perspective lenses) supported 
+  in grab.cpp
+

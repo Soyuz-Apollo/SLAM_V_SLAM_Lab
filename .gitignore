@@ -1,0 +1,47 @@
+# Machine-local settings and credentials
+.DS_Store
+.env
+.env.*
+!.env.example
+.obsidian/workspace*.json
+.obsidian/cache/
+.obsidian/plugins/
+.idea/
+.vscode/
+*.pem
+*.key
+
+# Raw datasets and large generated artifacts
+/data/*
+!/data/README.md
+!/data/.gitkeep
+*.bag
+*.mcap
+*.mp4
+*.avi
+*.mov
+*.pcd
+*.ply
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Build artifacts
+build/
+build-*/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+.pytest_cache/

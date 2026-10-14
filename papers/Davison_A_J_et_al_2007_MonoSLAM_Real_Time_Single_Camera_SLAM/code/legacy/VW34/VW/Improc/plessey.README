@@ -1,0 +1,11 @@
+BJT: 28/3/2002
+
+Change note:
+
+After some soul searching I have to admit that I think the current approach of Plessey corners not containing thier image patches was probably a mistake. I argued quite strongly that they probably shouldn't for memory reasons, but having played with matchers and normalisation it becomes apparent that life is far easier (and possibly quicker) later on if the images are not really required. Most notably, the current implementation of corner matcher has to detect and store a patch for each corner anyway, and as re-matching is simplified when the patch is kept it is clear that the logical plac to keep it is with the Plessey-Corner.
+
+Rather than completely ditching the old code, it is maintained in the classes PlesseyOld, PlesseyCornerOld and CornerMatcherOld. I realise this will cause problems for some people as the function calls to the matcher will change significantly, but I think it is for the best.
+
+Cheers
+
+Ben

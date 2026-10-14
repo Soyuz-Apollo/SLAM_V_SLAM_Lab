@@ -1,0 +1,202 @@
+\input texinfo 
+
+@c %**start of header
+   @setfilename VW.info
+   @settitle VW Libraries: User manual
+   @afourpaper
+@c %**end of header
+
+
+@iftex
+@titlepage
+   @title The VW Libraries
+   @author Active Vision Lab
+
+   @c  The following two commands
+   @c  start the copyright page.
+   @page
+   @vskip 0pt plus 1filll
+   This manual is for the VW library --- a computer vision library
+   aimed at software developers.
+
+   Copyright @copyright{} 2003 Oxford University
+
+   @quotation
+   Permission is granted to copy and distribute this document, provided it
+   is distributed in full and retains this original copyright notice.
+   @end quotation
+
+@end titlepage
+
+@contents
+
+@end iftex
+
+
+@c So the toc is printed in the right place.
+@ifnottex
+   @node Top
+   @top VW Libraries: User manual
+     
+   This manual is for the VW library --- a computer vision library
+   aimed at software developers.
+
+   Copyright @copyright{} 2002-2005 Oxford University
+
+   @quotation
+   Permission is granted to copy and distribute this document, provided it
+   is distributed in full and retains this original copyright notice.
+   @end quotation
+@end ifnottex
+     
+@c ----------------------------------------------
+
+@ifnottex 
+@noindent Chapters:
+@menu
+* Introduction::    Introducing the libraries and their purpose.
+* Installation::    Compiling and installing the libraries.
+* Images::          An introduction to the VW image classes.
+* ImageProcessing:: Classes for processing images.
+* PointFeatures::   Detecting, describing and matching point features.
+* LineFeatures::    Detecting line features.
+@end menu
+
+@noindent Appendices:
+@menu
+* WindowsVW::       So you want to use an inferior OS?
+* DevelopingVW::    Notes for those wishing to develop the library.
+* VNLvsvnl::        The reasons behind the altered VNL library
+* Copying::         The terms under which these libraries may be distributed.
+* LGPL::            A copy of the LGPL license.
+@end menu
+
+@noindent Indices:
+@menu
+* Class Index::     Index of the classes described in this document.
+* Function Index::  Index of the functions described in this document.
+* Concept Index::   Index of the topics discussed.
+@end menu
+@end ifnottex
+
+@c ----------------------------------------------
+
+@node    Introduction, Installation, Top, Top
+@comment node-name, next,           previous, up
+@chapter Introduction
+
+@include chapter_intro.texi
+
+
+@c ----------------------------------------------
+
+@node    Installation, Images, Introduction, Top
+@comment node-name, next,           previous, up
+@chapter Installation
+
+@include chapter_installation.texi
+
+
+@c ----------------------------------------------
+
+@node    Images, ImageProcessing, Installation, Top
+@comment node-name, next,           previous, up
+@chapter Images
+
+@include chapter_images.texi
+
+
+@c ----------------------------------------------
+
+@node    ImageProcessing, PointFeatures, Images, Top
+@comment node-name, next,           previous, up
+@chapter Image Processing
+
+@include chapter_imageprocessing.texi
+
+
+@c ----------------------------------------------
+
+@node    PointFeatures, LineFeatures, ImageProcessing, Top
+@comment node-name, next,           previous, up
+@chapter Point Features
+
+@include chapter_pointfeatures.texi
+
+
+@c ----------------------------------------------
+
+@node    LineFeatures, WindowsVW, PointFeatures, Top
+@comment node-name, next,           previous, up
+@chapter Line features
+
+@include chapter_linefeatures.texi
+
+
+@c ----------------------------------------------
+
+@node    WindowsVW, DevelopingVW, LineFeatures, Top
+@comment node-name, next,           previous, up
+@appendix VW on Windows
+
+@include chapter_windows.texi
+
+
+@c ----------------------------------------------
+
+@node    DevelopingVW, VNLvsvnl, WindowsVW, Top
+@comment node-name, next,           previous, up
+@appendix Developing VW
+
+@include chapter_developingvw.texi
+
+
+@c ----------------------------------------------
+
+@node    VNLvsvnl, Copying, DevelopingVW, Top
+@comment node-name, next,           previous, up
+@appendix VNL vs. vnl
+
+@include chapter_vnlvsvnl.texi
+
+
+@c ----------------------------------------------
+
+@node    Copying, LGPL, VNLvsvnl, Top
+@comment node-name, next,           previous, up
+@appendix Copying VW (licensing issues)
+
+@include chapter_copying.texi
+
+
+@c ----------------------------------------------
+
+@node    LGPL, Class Index, Copying, Top
+@comment node-name, next,           previous, up
+@appendix The GNU Lesser General Public License
+
+@include chapter_lgpl.texi
+
+
+@c ----------------------------------------------
+@node    Class Index, Function Index ,  LGPL, Top
+@comment node-name,      next, previous,  up
+@unnumbered Class Index
+
+@printindex tp
+
+@c ----------------------------------------------
+@node    Function Index, Concept Index ,  Class Index, Top
+@comment node-name,      next, previous,  up
+@unnumbered Function Index
+
+@printindex fn
+
+@c ----------------------------------------------
+@node    Concept Index ,  , Function Index, Top
+@comment node-name,      next, previous,  up
+@unnumbered Concept Index
+
+@printindex cp
+
+@bye

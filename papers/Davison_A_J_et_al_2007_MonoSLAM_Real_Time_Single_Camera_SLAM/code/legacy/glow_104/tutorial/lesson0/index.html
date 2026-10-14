@@ -1,0 +1,336 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Lesson 0: Installing GLOW
+</h2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson1/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson1/index.html">Lesson 1</a>
+</td>
+</tr></table>
+</p>
+
+<p>
+<table cellpadding=3 cellspacing=5 border=6>
+<tr>
+<th>Code</th>
+<th>Reference</th>
+<th>Sidebars</th>
+</tr>
+<tr>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="testglow.cpp">testglow.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="Makefile">Makefile</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/compiler.html">Compiler compatibility</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/symbols.html">Preprocessor symbols</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="side_makefile.html">Makefile customization</a>
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+This lesson covers the basics of installing GLOW and building a program using GLOW. It is geared primarily towards users of a unix-based operating system such as <a href="http://www.linux.org">Linux</a> or <a href="http://www.sgi.com">SGI</a> IRIX, but an experienced user should be able to glean enough information to install on a Macintosh, Windows PC, or other type of workstation. The goal of this lesson is to install the GLOW source on your machine, and to successfully compile and run a simple GLOW-based program.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Installing</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<b>System requirements</b>
+</p>
+<p>
+GLOW's main system requirement is a good, up-to-date C++ compiler. Specifically, it should adequately support the November 1997 ANSI/ISO standard for C++, including such features as exceptions, namespacees, STL, new casting operators, RTTI, and new keywords such as bool, typename, explicit and mutable. As of the end of 1999, most compilers are still lacking in a few areas, so GLOW does provide facilities for getting around a few of the common omissions in compiler technology. In general, you should try to have the most recent version of your compiler installed.
+</p>
+<p>
+I've successfully built GLOW with the following compilers:
+</p>
+<ul>
+<li>
+<a href="http://www.gnu.org">GNU</a> CC (gcc) 2.95 (Unix)
+</li>
+<li>
+MIPSPro C++ 7.3 (<a href="http://www.sgi.com">SGI</a> IRIX)
+</li>
+<li>
+<a href="http://www.metrowerks.com">Metrowerks</a> Codewarrior Pro 5 (Macintosh, Windows, Linux, Solaris)
+</li>
+<li>
+<a href="http://www.microsoft.com">Microsoft</a> Visual C++ 6.0 (Windows)
+</li>
+</ul>
+<p>
+I primarily use gcc under Linux for developing and testing GLOW, so that development system is currently the best supported. However, as other compilers converge on supporting the ANSI/ISO C++ standard, they should work better with GLOW's code over time.
+</p>
+<p>
+GLOW also requires <a href="http://www.opengl.org/">OpenGL</a> and <a href="http://www.opengl.org/Documentation/GLUT.html">GLUT</a> to be installed. I have also successfully used it with <a href="http://www.mesa3d.org/">Mesa</a>. If you don't know what OpenGL is, then you don't need to read any further because GLOW probably won't interest you.
+</p>
+
+<p>
+<b>A source code library</b>
+</p>
+<p>
+GLOW is a <i>source code library</i>. This means it is distributed as C++ source code, not as a compiled library file. I do this for two reasons: First, so that it can be used regardless of the platform you're running, and second, so you can choose which parts of GLOW you want to use, and so that you can modify it if you feel the need. You may choose to use GLOW directly in its source code form, by adding the GLOW sources to your projects. The lessons in this tutorial demonstrate the technique of using GLOW sources directly. However, if you use GLOW often, you may wish to make a library archive (<tt>libglow.a</tt>) or a shared library (<tt>libglow.so</tt>) for it. The section "Building a GLOW library" at the end of this lesson gives some details on how to build GLOW as a library.
+</p>
+
+<p>
+<b>Directories</b>
+</p>
+<p>
+The GLOW source is contained in the directory called "<tt>glow_src</tt>." Your first task is to copy this directory to a reasonable place in your file system. I keep it with the rest of my source code, but you may want to put it in <tt>/usr/lib</tt> or some other canonical location.
+</p>
+<blockquote>
+<p>
+<b><image src="../../graphics/notebullet.gif" alt="* ">IRIX/MIPSPro note</b>
+</p>
+<p>
+MISPPro 7.3 is missing some of the standard C++ headers, particularly the new-style names for the old C standard headers (such as <tt>&lt;cmath&gt;</tt>). I've provided a set of compatibility headers in the directory "<tt>Compat-SGI</tt>." MIPSPro users should also install these headers. I keep the entire <tt>Compat-SGI</tt> directory with the rest of my source code, and point to it with a -I directive to the compiler. You may choose to install them directly in your <tt>/usr/include/CC</tt> directory, but make sure you don't replace any files already there with the same names.
+</p>
+</blockquote>
+
+<p>
+<b>If you're using an IDE...</b>
+</p>
+<p>
+...such as Metrowerks Codewarrior or Microsoft Visual C++, then some of the information in this tutorial won't apply to you. However, you should still attempt to compile lesson 0 with your compiler, and make sure you know what compiler switches and libraries are necessary. The compiler section of the reference gives some hints on getting those two development systems to work.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/compiler.html">Compiler compatibility</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Makefiles</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+I provide a makefile for each program in this series of lessons. You do not need to use these makefiles if you don't want to-- they're just my personal makefiles-- and indeed if you are using an IDE such as Codewarrior or Microsoft Visual Dev Studio, you'll need to set up a project instead. The makefiles are designed to work on IRIX/MIPSPro and Linux/gcc, but they shouldn't be difficult to adapt to other unix systems. The only caveat is that they require a recent version of GNU-make, which you can download from the software section of the <a href="http://www.gnu.org">GNU home page</a> if you don't have it. I recommend version 3.77 or later.
+</p>
+<p>
+The makefiles provided with each lesson contain only a description of the program, the locations of the files needed, and the compile options. The actual "meat" of the makefile is in the file "<tt>glow_base.Makefile</tt>", which is located in the <tt>glow_src</tt> directory. The provided makefiles include this file automatically.
+</p>
+<p>
+The makefiles as I provide them may work without modification if you are using a system configuration similar to mine, and you don't move any of the directories from the GLOW distribution. However, you'll probably want to install some of the directories, such as the <tt>glow_src</tt> directory, someplace canonical; in this case, for each makefile, you'll need to change a few variables to match your configuration and installation locations. Specifically, you need to set <tt>SRCDIR</tt> to the location of the source files for the current program. If you like to build in the same directory that your source lives, you can set this variable to "." the current directory. However, you can also set it to a different directory if you want to keep source and object separate (which I like to do). You also need to set <tt>GLOWDIR</tt> to point to your <tt>glow_src</tt> directory. You may also need to alter or remove the -I and -L directives in the <tt>CFLAGS</tt> and <tt>LDFLAGS</tt> symbols.
+</p>
+<p>
+The other symbols should be pretty straightforward. <tt>MODULES</tt> should be set to the names of the source files (minus the .cpp extension). <tt>GLOWMODULES</tt> should be set to the names of the GLOW modules needed (again, without the .cpp extension). The other symbols are platform-specific and describe the compiler and compiler flags to be used. If you're running a system other than IRIX or Linux, you may need to alter these values, particularly <tt>LIBS</tt> and <tt>CFLAGS</tt>. If you really want to know the nuts and bolts of customizing my makefiles, or if you think it's cool and want to use it for your own projects, see the Makefiles sidebar.
+</p>
+<p>
+Or it may be easier just to create your own makefile. The key here is to make sure that you compile the correct GLOW modules. It's easy to find out which ones a program needs-- just look at the value of the <tt>GLOWMODULES</tt> symbol, add ".cpp" to each name, and compile the appropriate files from your <tt>glow_src</tt> directory.
+</p>
+<p>
+Finally, my makefile system provides what I call "file-options", which is a facility for customizing makefile options by the existence of files in the object directory. File-options are discussed in more detail in the sidebar, but there are two standard options that are of interest: <tt>DEBUG</tt> and <tt>STRIP</tt>. <tt>DEBUG</tt> turns on debug mode, which I recommend when compiling GLOW programs because it provides extended error checking, and also because if <tt>DEBUG</tt> isn't in effect, my makefile automatically defines <tt>NODEBUG</tt>. <tt>STRIP</tt> causes the binary to be stripped after it is linked. To activate a file-option, create a file called "<tt>.glowmake.&lt;option_name&gt;</tt>" in the directory you're building into. For example, to ensure that <tt>DEBUG</tt> mode is on, you can:
+</p>
+<blockquote>
+<tt>touch .glowmake.DEBUG</tt>
+</blockquote>
+<p>
+The reference document "Compiler compatibility" contains information on getting a GLOW program compiling with other compilers or other operating systems. Also see "Preprocessor symbols" for a list of symbols that you may need to use in your makefile for compatibility with older compilers that do not completely implement the ANSI C++ standard.
+</p>
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/compiler.html">Compiler compatibility</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/symbols.html">Preprocessor symbols</a></b>
+</p>
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Sidebar: <b><a href="side_makefile.html">Makefile customization</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Building your first GLOW program</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Now let's build your first GLOW program. First, download and unpack the GLOW distribution if you haven't already. Go into the directory <tt>tutorial/lesson0</tt>. If you have moved/installed the <tt>glow_src</tt> directory or the <tt>Compat-SGI</tt> directory, set up the Makefile as described above, paying close attention to the <tt>SRCDIR</tt> and <tt>GLOWDIR</tt> symbols. I also suggest creating a "<tt>.glowmake.DEBUG</tt>" file and a "<tt>.glowmake.STRIP</tt>" file. Finally, run gnu-make. Your compiler should build a program called "<tt>testglow</tt>". You can now run this program.
+</p>
+
+<p>
+<b>Did you have problems?</b>
+</p>
+<p>
+If the build wasn't succeessful, there are several different things that may have gone wrong. If you encountered an error message that looks something like this:
+</p>
+<blockquote>
+<tt>Symbols missing from makefile:<br>COMPILE DEPFLAGS</tt>
+</blockquote>
+<p>
+then most likely your problem is that you're running on an operating system other than IRIX or Linux. See the sidebar on customizing your makefile.
+</p>
+<p>
+If you encountered an error like this:
+</p>
+<blockquote>
+<tt>No rule to make target `testglow.dep'</tt>
+</blockquote>
+<p>
+then you've likely set up your <tt>SRCDIR</tt> symbol incorrectly. Make sure it points to the directory in which your testglow.cpp source file resides. If it instead complains about not finding the file <tt>glow_base.Makefile</tt>, then your <tt>GLOWDIR</tt> symbol isn't pointing to your <tt>glow_src</tt> directory.
+</p>
+<p>
+If the compiler complains:
+</p>
+<blockquote>
+<tt>The source file "csignal" is unavailable.</tt>
+</blockquote>
+<p>
+then you're running MIPSPro but don't have the MIPSPro compatibility headers in the <tt>Compat-SGI</tt> directory installed properly, or else your compiler does not support the new ANSI C++ header names.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Building a GLOW library</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+If you use GLOW often, you can build a library archive or a shared library. I have provided a makefile in the glow_src directory for that purpose. The makefile is designed for the IRIX and Linux operating systems, so if you are running under one of those systems, you should be able to build the libraries by simply running gnu-make. If you are running a different unix system, you'll need to make some changes to the makefile.
+</p>
+<p>
+The makefile will generate four libraries:
+</p>
+<ul>
+<li>
+<b>libglow.a.(version)</b>: static library
+</li>
+<li>
+<b>libglow.so.(version)</b>: shared library
+</li>
+<li>
+<b>libglowdebug.a.(version)</b>: static library with debug option
+</li>
+<li>
+<b>libglowdebug.so.(version)</b>: shared library with debug option
+</li>
+</ul>
+<p>
+The debug libraries are compiled with GLOW_OPTION_DEBUG. If you choose to use GLOW as a library, you should link with the library corresponding to the debug option you used to compile the rest of your program. (The makefiles provided with the tutorials choose the proper library automatically.)
+</p>
+<p>
+To install the libraries, build them by making in the glow_src directory, then copy them to an appropriate directory such as /usr/lib. You should also rename the libraries to remove the version number, or create soft links without the version in the name. For example:
+</p>
+<blockquote>
+<pre>ln -s libglow.so.1.0.1 libglow.so</pre>
+</blockquote>
+
+<p>
+<b>What if I use Windows or Mac?</b>
+</p>
+<p>
+You should be able to build a Windows static library using MSVC++ 6.0. Just make sure you set up your project using the appropriate stationery to build a static library. More information on compiling GLOW sources using MSVC is available in the compiler compatibility section of the reference.
+</p>
+<p>
+I don't think it's possible to build a DLL of GLOW using Microsoft's current tools. GLOW uses templates and STL containers fairly heavily, and MSVC has trouble dllexporting classes with lots of template activity. (However, I don't have a lot of experience with MSVC, so I'm not absolutely sure it's impossible. If you are able to build a DLL of GLOW, please let me know how you did it.)
+</p>
+<p>
+I haven't tried building GLOW as a static or shared library on the Mac yet, but Metrowerks Codewarrior shouldn't have too much trouble with it.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/compiler.html">Compiler compatibility</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Where to go from here</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Now that you've successfully built a GLOW program, we can start looking at how to use GLOW to build portable user interfaces for OpenGL programs. Lesson 1 starts this by introducing our tutorial project, a Mandelbrot set viewer. If you're adventurous, you can also look through the source code for testglow.cpp to get a preview of how GLOW programs are constructed.
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson1/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson1/index.html">Lesson 1</a>
+</td>
+</tr></table>
+</p>
+
+
+
+<hr size=2>
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+tmpfile=`mktemp -q /tmp/$0.XXXXXX`
+if [ $? -ne 0 ]; then
+    echo "$0: Can't create temp file, exiting..."
+    exit 1
+fi
+
+cat >$tmpfile
+res=`awk '/%%BoundingBox:/ { print $4-$2"x"$5-$3; exit }' <$tmpfile`
+offset=`awk '/%%BoundingBox:/ { print -$2, -$3; exit }' <$tmpfile`
+echo $offset translate | cat - $tmpfile | gs -sDEVICE=pnmraw -sOutputFile=- -g$res -r72x72 -q -dNOPAUSE -
+/bin/rm -f $tmpfile
+exit 0

@@ -1,0 +1,19 @@
+GTIRPMNAME = VWGTI
+GTIRPMFILES = gti.files
+
+# The RPM requires uptodate tgz file
+gtirpm: ~/.rpmmacros rpmcommon
+#   1. Create list of files to include in rpm
+	cd $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW; \
+	cat $(GTIRPMFILES) > tmp.txt; \
+	/bin/sed -e 's/^/\/usr\/include\/VW\//' tmp.txt > headerfiles.txt; \
+#   2. Set the version string in the spec file and cat together
+	/bin/sed -e 's/--VERSION--/'$(VERSION)'/' -e 's/--RELEASE--/'$(TODAY)'/' $(GTIRPMNAME)/$(GTIRPMNAME).spec > $(RPMBUILDROOT)/SPEC/$(GTIRPMNAME)-$(VERSION)-$(TODAY).spec.header; \
+	cat $(RPMBUILDROOT)/SPEC/$(GTIRPMNAME)-$(VERSION)-$(TODAY).spec.header $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/include/VW/headerfiles.txt > $(RPMBUILDROOT)/SPEC/$(GTIRPMNAME)-$(VERSION)-$(TODAY).spec; \
+#   3. make the RPM and copy it back
+	cd $(RPMBUILDROOT)/SPEC; \
+	rpmbuild -ba -vv $(GTIRPMNAME)-$(VERSION)-$(TODAY).spec;
+	cp $(RPMBUILDROOT)/RPMS/i386/$(GTIRPMNAME)-$(VERSION)-$(TODAY).i386.rpm $(VWDIR)
+	cp $(RPMBUILDROOT)/BUILD/VW-$(VERSION)/$(GTIRPMNAME)-$(VERSION)-$(TODAY).* $(VWDIR)
+	more $(GTIRPMNAME)-$(VERSION)-$(TODAY).report
+

@@ -1,0 +1,30 @@
+~/.rpmmacros:
+	echo "%_topdir /tmp/RPM-buildroot-`whoami`" > ~/.rpmmacros
+
+RPMBUILDROOT = $(shell awk '/%_topdir/ { print $$2; }' <$(HOME)/.rpmmacros)
+
+
+
+# Make the (clean) tarball of sources
+
+rpmcommon:
+# This requires quite a few steps!
+#   0. Test for a file .rpmmacros which has a build location
+	echo Build root is $(RPMBUILDROOT); \
+#   1. Make the build area
+	/bin/mkdir -p $(RPMBUILDROOT)/SOURCES/VW-$(VERSION); \
+	/bin/mkdir -p $(RPMBUILDROOT)/SPEC; \
+	/bin/mkdir -p $(RPMBUILDROOT)/BUILD; \
+	/bin/mkdir -p $(RPMBUILDROOT)/RPMS/i386; \
+	/bin/mkdir -p $(RPMBUILDROOT)/SRPMS; \
+#   2. Copy everything to /tmp, and set the version string in the .spec file
+	/bin/cp -a ./* $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/; \
+#   3. Make sure the sources are clean and tar.gz them
+	cd $(RPMBUILDROOT)/SOURCES/VW-$(VERSION)/; \
+	make realclean &> /dev/null; \
+	make make &> /dev/null; \
+	make headers &> /dev/null; \
+	make vnlheaders &> /dev/null; \
+	cd ..; \
+	tar zcf VW-$(VERSION).tgz VW-$(VERSION); \
+

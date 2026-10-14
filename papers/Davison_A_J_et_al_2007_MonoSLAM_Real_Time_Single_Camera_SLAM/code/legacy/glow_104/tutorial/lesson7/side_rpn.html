@@ -1,0 +1,314 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Sidebar: About Reverse Polish Notation
+</h2>
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 7</a>
+</td>
+</tr></table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<img src="calc.jpg" border=0 align=right hspace=10 vspace=10>
+Reverse Polish Notation (RPN) is an alternate way of notating mathematical expressions. Although not too commonly used, RPN is often touted as more efficient than the standard notation, and RPN calculators are popular with many in the scientific and engineering communities.
+</p>
+<p>
+The basic premise of RPN is that the operator appears after the operands instead of between them. For example, what under normal notation appears as:
+</p>
+<blockquote>
+2 + 3
+</blockquote>
+<p>
+appears in RPN as
+</p>
+<blockquote>
+2 3 +
+</blockquote>
+<p>
+RPN calculators differ slightly in appearance from normal calculators. As you can see in the image to the right, the calculator has no equals button, but has an extra button called "enter". Everyone knows that to evaluate the above expression using a "normal" calculator, you would press:
+</p>
+<blockquote>
+<tt>[2] [+] [3] [=]</tt>
+</blockquote>
+<p>
+and the calculator will display the answer, 5. With an RPN calculator, you press the "enter" key to separate the operands, and when you press the plus key, it evalulates the expression immediately.
+</p>
+<blockquote>
+<tt>[2] [enter] [3] [+]</tt>
+</blockquote>
+<p>
+and the calculator will display the answer, 5. The result can also be used as an operand. For example, to evaluate (2+3)*4, which using a normal calcualtor could be computed like this:
+</p>
+<blockquote>
+<tt>[2] [+] [3] [*] [4] [=]</tt>
+</blockquote>
+<p>
+could be computed using RPN in this way:
+</p>
+<blockquote>
+<tt>[2] [enter] [3] [+] [4] [*]</tt>
+<br clear=right>
+</blockquote>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>A stack-based memory</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<b>Memory in traditional calculators</b>
+</p>
+<p>
+The real power of RPN comes in its memory system. Most normal calculators have a memory that you can use to store partial results. For example, to evaluate 10/(2+3), you'll need to evaluate 2+3 first and temporarily store the intermediate result:
+</p>
+<blockquote>
+<tt>[2] [+] [3] [=] [store] [1] [0] [/] [recall] [=]</tt>
+</blockquote>
+<p>
+It can be difficult to keep track of partial results in this manner, especially if your calculator has only one memory location. It also means you have to reorder the expression when you type it into the calculator. Even though the expression begins with a "10", you need to enter the "2" and "3" first.
+</p>
+<p>
+Some more sophisticated calculators provide parentheses, so you don't have to manually reorder the expression, and store and recall results:
+</p>
+<blockquote>
+<tt>[1] [0] [/] [(] [2] [+] [3] [)] [=]</tt>
+</blockquote>
+<p>
+However, this requires the calculator to "remember" that you're in the middle of an expression (10/x). As a result, it can be non-intuitive what mode the calculator is in, or exactly what it's doing at any given point. If you make a mistake, you'll typically need to start over.
+</p>
+
+<p>
+<b>Memory in RPN calculators</b>
+</p>
+<p>
+RPN calculators use a different memory model, based on a stack. Since you're reading this in the middle of a tutorial on a programming API, I'm going to assume you already know what a stack is. To put it simply, you store intermediate values by pushing them on the stack, and you can use previously stored values by popping them off.
+</p>
+<p>
+In fact, the entire RPN model is based on a stack machine. When you enter a value, you're manipulating the value on the top of the stack, and pressing the enter key duplicates the value on top of the stack, and pushes the duplicate on top. Pressing an operator key pops the top two values off the stack, applies the operation, and pushes the result back on the stack.
+</p>
+
+<p>
+<b>A simple stack example</b>
+</p>
+<p>
+As an example, let's consider the expression 10/(2+3). Using an RPN calculator, we compute it like this:
+</p>
+<blockquote>
+<tt>[1] [0] [enter] [2] [enter] [3] [+] [/]</tt>
+</blockquote>
+<p>
+Here's how that works. First we set the top of the stack to "10". Next, by pressing enter, we push a new value, a duplicate of "10", onto the stack, pushing the original "10" down. We set the new top value to "2". We push again using "enter", and set the new top value to "3". At this point, our stack looks like this:
+</p>
+<blockquote><tt>
+10<br>
+2<br>
+3 &lt;--top
+</tt></blockquote>
+<p>
+Now we start applying operations. Pressing "+" adds the top two values (2 and 3) and pushes the result, 5.
+</p>
+<blockquote><tt>
+10<br>
+5 &lt;--top
+</tt></blockquote>
+<p>
+Now, finally, we press "/", which divides 10 by 5 to yield the result, 2.
+</p>
+<p>
+So what are the advantages of this method? First, notice that we didn't need to manually reorder the expression; we input the values in the same order as they appeared in the mathematical expression. Second, once you're used to thinking in terms of the stack, it's clear at all times what state the calculator is in. You know which computations have been done already and which ones are pending, and so you can correct mistakes or change things around in the middle.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>An example</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<b>Computing (e-1)^(2/(pi-log(pi))) on an RPN calculator</b>
+</p>
+<p>
+Let's take a look at one more example. Suppose we want to evaluate (e-1)^(2/(pi-log(pi))) on our calculator.
+</p>
+<p>
+First, whoops, we notice there's no key to give the value of "e". No problem, we'll just use exp(1)...
+</p>
+<blockquote>
+<tt>[1] [exp] [1] [-]</tt>
+</blockquote>
+<p>
+Okay, now we've got e-1. For the next section, we need to divide 2 by something, so we first push a new value on the stack and set it to 2.
+</p>
+<blockquote>
+<tt>[enter] [2]</tt>
+</blockquote>
+<p>
+Now we have to get the value of pi, for which there's no key again. No problem. We remember that pi=arccos(-1), and get a value for pi:
+</p>
+<blockquote>
+<tt>[1] [+/-] [inv] [acos]</tt>
+</blockquote>
+<p>
+We needed to hit the inverse key to change the [cos] button to [acos]. Now we have three values on the stack:
+</p>
+<blockquote><tt>
+e-1<br>
+2<br>
+pi &lt;--top
+</tt></blockquote>
+<p>
+Now we need to subtract log(pi) from pi. No problem. We duplicate our value for pi using the enter key, and apply the log operator, and then subtract:
+</p>
+<blockquote>
+<tt>[enter] [log] [-]</tt>
+</blockquote>
+<p>
+At this point, our top two values are set up to compute 2/(pi-log(pi)), and our intermediate value for e-1 is still waiting for us further down.
+</p>
+<blockquote><tt>
+e-1<br>
+2<br>
+pi-log(pi) &lt;--top
+</tt></blockquote>
+<p>
+We can now finish off the computation:
+</p>
+<blockquote>
+<tt>[/] [inv] [pow]</tt>
+</blockquote>
+<p>
+We needed to hit the inverse key once more to change from inverse mode back to normal mode to get the power function. And we're done!
+</p>
+
+<p>
+<b>Computing (e-1)^(2/(pi-log(pi))) on a traditional calculator</b>
+</p>
+<p>
+Now let's look at what would be involved if we had to perform the same computation on a standard notation calculator without parentheses. We'll consider a calculator with multiple memory locations (we'll need them!) that you can specify by letter. It might have looked like this:
+</p>
+<blockquote>
+<tt>[1] [exp] [-] [1] [=] [store] [A]</tt>
+</blockquote>
+<p>
+Stores the intermediate result of e-1 in location "A". Now we need to reorder the "2" and the "pi-log(pi)" because we need to evaluate the second expression first.
+</p>
+<blockquote>
+<tt>[1] [+/-] [inv] [acos] [store] [B]</tt>
+</blockquote>
+<p>
+Stores the intermediate result of pi in location "B". We also need to store log(pi), because the - operator is not commutative:
+</p>
+<blockquote>
+<tt>[log] [store] [C]</tt>
+</blockquote>
+<p>
+Now we've got a lot of intermediate values stored away, and we can finally start using them. First, compute pi-log(pi).
+</p>
+<blockquote>
+<tt>[recall] [B] [-] [recall] [C] [=] [store] [D]</tt>
+</blockquote>
+<p>
+Since the division operator doesn't commute either, we had to store the intermediate result before dividing it into 2:
+</p>
+<blockquote>
+<tt>[2] [/] [recall] [D] [=] [store] [E]</tt>
+</blockquote>
+Alas, the exponentiation operator doesn't commute either, so we had to store yet another intermediate result before applying the final operation. 
+</p>
+<blockquote>
+<tt>[recall] [A] [inv] [pow] [recall] [E] [=]</tt>
+</blockquote>
+<p>
+Finally! And we almost forgot which memory location was holding e-1.
+</p>
+
+<p>
+<b>Play it again, Sam!</b>
+</p>
+<p>
+To summarize, let's compare the full order of operations using our RPN calculator, versus the standard calculator. Using RPN:
+</p>
+<blockquote>
+<tt>[1] [exp] [1] [-] [enter] [2] [1] [+/-] [inv] [acos] [enter] [log] [-] [/] [inv] [pow]</tt>
+</blockquote>
+<p>
+... and using standard notation:
+</p>
+<blockquote>
+<tt>[1] [exp] [-] [1] [=] [store] [A] [1] [+/-] [inv] [acos] [store] [B] [log] [store] [C] [recall] [B] [-] [recall] [C] [=] [store] [D] [2] [/] [recall] [D] [=] [store] [E] [recall] [A] [inv] [pow] [recall] [E] [=]</tt>
+</blockquote>
+<p>
+Try out the RPN calculator we build in this tutorial. It does take a little getting used to, but once you have the hang of it, you'll probably never want to go back to those "other" calculators again. If you're looking for a good handheld, Hewlett Packard makes some good RPN scientific calculators. I especially recommend the HP-48G.
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+<p>
+<table cellpadding=0 cellspacing=3><tr>
+<td valign=top>
+<a href="index.html"><image src="../../graphics/revert.gif" border=0></a>
+</td>
+<td valign=top>
+<a href="index.html">Back to<br>lesson 7</a>
+</td>
+</tr></table>
+</p>
+
+
+<hr size=2>
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

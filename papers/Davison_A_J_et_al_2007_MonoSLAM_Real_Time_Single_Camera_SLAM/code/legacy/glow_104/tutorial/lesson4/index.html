@@ -1,0 +1,742 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+
+<head>
+
+<title>
+GLOW Tutorial
+</title>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>
+Lesson 4: Adding a control panel
+</h2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson3/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson3/index.html">Lesson 3</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson5/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson5/index.html">Lesson 5</a>
+</td>
+</tr></table>
+</p>
+
+<p>
+<table cellpadding=3 cellspacing=5 border=6>
+<tr>
+<th>Code</th>
+<th>Reference</th>
+</tr>
+<tr>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelglow.cpp">mandelglow.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.h">mandeldata.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandeldata.cpp">mandeldata.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.h">mandelwind.h</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="mandelwind.cpp">mandelwind.cpp</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="Makefile">Makefile</a>
+</td>
+<td valign=top>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowCheckBoxMessage.html">class GlowCheckBoxMessage</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowCheckBoxWidget.html">class GlowCheckBoxWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowLabeledPopupMenuWidget.html">class GlowLabeledPopupMenuWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowLabeledSliderWidget.html">class GlowLabeledSliderWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowLabelWidget.html">class GlowLabelWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowMessageWindow.html">class GlowMessageWindow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowMessageWindowMessage.html">class GlowMessageWindowMessage</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowPopupMenuMessage.html">class GlowPopupMenuMessage</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowPushButtonMessage.html">class GlowPushButtonMessage</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowPushButtonWidget.html">class GlowPushButtonWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowQuickPaletteWindow.html">class GlowQuickPaletteWindow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowQuickPanelWidget.html">class GlowQuickPanelWidget</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowSliderMessage.html">class GlowSliderMessage</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowTextFieldWindow.html">class GlowTextFieldWindow</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowTextFieldWindowMessage.html">class GlowTextFieldWindowMessage</a>
+<br>
+<image src="../../graphics/arrowbullet.gif"><a href="../../reference/GlowWidget.html">class GlowWidget</a>
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Introduction</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+One of the most powerful features of GLOW is its widget library. This lesson will explore some of the basics of using GLOW's cross-platform widgets, by replacing the menus we implemented in lesson 3 with a control panel that we can use to control aspects of the Mandelbrot calculation and display. We'll also implement a few additional features, including the ability to change the iteration level, and more powerful control over the color scheme. At the end of this lesson, you should have an understanding of how to create more complex user interfaces using widgets.
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>About GLOW widgets</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+<img src="widgets.jpg" border=0 align=right hspace=10 vspace=10>
+Before we go on to the code, here's an overview of GLOW's widget system and how you interact with widgets.
+</p>
+<p>
+GLOW widgets are objects that inherit from the base class <tt>GlowWidget</tt>. A widget is a controllable user interface object that takes up a specific area of the screen, responds to user input such as mouse clicks, and raises special events known as widget events. These include events such as button presses, slider drags, and popup menu selections. To add widgets to your user interface, you go through two steps. First, create the appropriate widget objects, configure them and lay them out in a window. Second, write classes to handle the widget events you are interested in receiving.
+</p>
+<p>
+GLOW provides two APIs for the step of creating and laying out widgets. The first is a low-level API designed for flexibility. To create widgets using the low-level API, you fill out a parameter block and pass it to the widget's constructor. The parameter block interface gives you fine-level control over many aspects of each widget's appearance and behavior, as well as pixel-level control over its size and positioning. The parameter block API will be discussed in more detail in lesson 7. In addition, the program in lesson 0 uses the parameter block API to create the quit button.
+</p>
+<p>
+The second API, called the QuickPalette API, is a high-level API designed for ease-of-use. The high-level API does not provide all of the flexibility of the low-level API, but it handles many of the details automatically and is usually adequate for most applications. It allows you to create widgets with a single line of code, and includes facilities for automatically sizing and arranging widgets. The example in this lesson uses the QuickPalette API.
+</p>
+<p>
+GLOW also provides two ways your program can receive and respond to widget events. First, widgets report events by sending messages to receivers. You can bind a widget to a receiver object to receive notification of events. Alternatively, your program may subclass the widget class and override a virtual method for the event. In most cases, you will probably use the receiver method of handling events.
+</p>
+<p>
+To use widgets, you need to #include the header file <tt>glowQuickPalette.h</tt>. This line is present in our <tt>mandelwind.h</tt> file. This header includes all the APIs necessary to use the high-level QuickPalette for creating widgets. If you are using the low-level API, you will #include a different set of headers. We will also see later that we need to add a few more GLOW modules to the Makefile.
+<br clear=right>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWidget.html">class GlowWidget</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Creating widgets</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+To see how to create widgets, let's take a look at the new constructor for <tt>MandelWind</tt>, in the file <tt>mandelwind.cpp</tt>. It's been greatly expanded. First off, we've commented out the code we added in lesson 3 that creates a menu to attach to the right mouse button; we're going to provide access to this functionality using widgets instead.
+</p>
+
+<p>
+<b>Creating a widget palette window</b>
+</p>
+<p>
+The next line creates an object of type <tt>GlowQuickPaletteWindow</tt>. This is a subclass of <tt>GlowWindow</tt> that is designed to arrange and display widgets. Because it is a <tt>GlowWindow</tt> subclass, it will create a second toplevel window.
+</p>
+<blockquote>
+<pre>_controlWindow = new GlowQuickPaletteWindow("Controls");</pre>
+</blockquote>
+<p>
+The lines of code following will add widgets to the window, but before we look at them, a word about how widgets will actually be arranged within the window. When we create widgets, we won't give them a specific location in the window. Instead, the window will automatically arrange widgets based on their preferred sizes, and arrangement parameters that you can specify.
+</p>
+<p>
+The main arrangement parameters are <i>arrangement</i> and <i>alignment</i>. Arrangement is a direction that the widgets will build, either horizontal or vertical; alignment is their alignment within the alloted space, either up against one side, centered, or expanded to fill the space. For now, we're using the default arrangement and alignment values for <tt>GlowQuickPaletteWindow</tt>, which are vertical arrangement, and align-left. This means widgets will be arranged in a vertical column, left justified. You can create more complicated arrangements using arranging panels, described a little farther below. You can also control the spacing and margins around the widgets.
+</p>
+<p>
+Widgets aren't actually arranged until you call the <tt>Pack()</tt> method. At that time, each widget is queried to determine its preferred size, and <tt>GlowQuickPaletteWindow</tt> positions them according to the arrangement parameters. The window then resizes itself and displays itself by calling <tt>Show()</tt>. Generally, to create a window full of widgets, you create the window itself, then add the widgets in the order you want them to be arranged in, then call <tt>Pack()</tt>.
+</p>
+
+<p>
+<b>Adding widgets to a palette</b>
+</p>
+<p>
+Okay, on to adding widgets...
+</p>
+<blockquote>
+<pre>_controlWindow->AddLabel(
+    "Mandelglow (lesson 4)\nby Daniel Azuma");</pre>
+</blockquote>
+<p>
+A number of methods are provided in <tt>GlowQuickPaletteWindow</tt> to add widgets to the window. This line creates a label widget, which is an object of type <tt>GlowLabelWidget</tt>. This widget simply displays a few lines of static text in the window. Notice that you can specify several lines of text in the label, separated by newline characters. Labels don't automatically word-wrap, so you need to explicitly separate your labels into multiple lines.
+</p>
+<p>
+The next line adds a panel, which is of type <tt>GlowQuickPanelWidget</tt>.
+</p>
+<blockquote>
+<pre>GlowQuickPanelWidget* panel = _controlWindow->AddPanel(
+    GlowQuickPanelWidget::etchedStyle, "Calculation");</pre>
+</blockquote>
+
+<p>
+<b>What's a panel?</b>
+</p>
+<p>
+A panel is a special widget that is designed to contain and arrange other widgets. Panels may be invisible, or they may appear as boxes in the window. They may also include a title. The panel created here appears as an etched box in the window, and includes the title "Calculation". We'll put widgets that control calculation parameters in this panel. Note that the method returns a pointer to the panel object; we'll use that pointer in the next line...
+</p>
+<blockquote>
+<pre>panel->AddCheckBox("Background calcuation", GlowCheckBoxWidget::on, this);</pre>
+</blockquote>
+<p>
+This line adds a checkbox widget (<tt>GlowCheckBoxWidget</tt>) to the panel. <tt>GlowQuickPaletteWindow</tt> and <tt>GlowQuickPanelWidget</tt> understand the same API for adding widgets, so methods like <tt>AddCheckBox()</tt> can be used to add widgets either to the top level in a window or inside a panel. The parameters given here include a label for the checkbox, the initial state (on), and a pointer to a receiver object to receive checkbox events. We'll look at widget events more closely in the next section; for now, note that we're using the <tt>MandelWind</tt> object as the event receiver.
+</p>
+<blockquote>
+<pre>_iterationSlider = panel->AddSlider(100, 2000, 1000,
+    GlowSliderWidget::defaultOptions, 2, "%.0f", "Iterations:\n%.0f", this);</pre>
+</blockquote>
+<p>
+This line adds a slider widget (<tt>GlowLabeledSliderWidget</tt>), also inside the calculation panel. Sliders are complex widgets with a lot of parameters. Here, in order, they are the lower bound, upper bound, initial value, options, number of evenly-spaced tick marks, printf pattern for upper and lower bound value labels, printf pattern for current value label, and pointer to an event receiver. The two printf patterns should include a <tt>%f</tt> placeholder, using the formatting used by the C standard library call <tt>printf</tt>. The placeholder will be replaced with the value associated with that label: the current value, the minimum value or the maximum value. If you want the number formatted as an integer rather than a float, you should use "<tt>%.0f</tt>" to indicate that you want no digits after the decimal point.
+</p>
+
+<p>
+<b>Nested panels</b>
+</p>
+<p>
+Next we add a second panel to the window. This panel will be titled "View".
+</p>
+<blockquote>
+<pre>panel = _controlWindow->AddPanel(
+    GlowQuickPanelWidget::etchedStyle, "View");</pre>
+</blockquote>
+<p>
+We now add a popup menu widget to the "View" panel.
+</p>
+<blockquote>
+<pre>GlowLabeledPopupMenuWidget* popup = panel->AddPopupMenu(
+    "Color scheme:", this);
+popup->AddItem("Red");
+popup->AddItem("Green");
+popup->AddItem("Blue");
+popup->AddItem("Multi");</pre>
+</blockquote>
+<p>
+Note that we can take the pointer to the <tt>GlowLabeledPopupMenuWidget</tt> object returned from the call to <tt>AddPopupMenu</tt> and use it to further configure the widget. In this case, we set up the menu items with the color scheme options.
+</p>
+<blockquote>
+<pre>_multiColorControlsPanel = panel->AddPanel(
+    GlowQuickPanelWidget::etchedStyle, "Multicolor settings");</pre>
+</blockquote>
+<p>
+Here, notice that we call the <tt>AddPanel</tt> method on the "View" panel. We're adding another panel that will be nested inside "View" panel. Further widgets, or even other panels, can be added inside this nested panel. You can nest panels as deeply as you want. In this case, we add two sliders inside the nested panel.
+</p>
+<p>
+After the sliders are added, notice this line:
+</p>
+<blockquote>
+<pre>_multiColorControlsPanel->Deactivate();</pre>
+</blockquote>
+<p>
+This causes the panel, plus all its contents (i.e. the two sliders we added to it), to be deactivated. Widgets in the inactive state appear "grayed out" and do not respond to mouse clicks or other events. We want to set up the user interface so this panel appears active only when the popup menu is set to "Multi". The initial value of the menu is "Red", so we deactivate the panel initially.
+</p>
+
+<p>
+<b>Arranging panels</b>
+</p>
+<p>
+After we add one more button to the "View" panel, notice this line:
+</p>
+<blockquote>
+<pre>panel = _controlWindow->AddArrangingPanel(
+    GlowQuickPanelWidget::horizontal);</pre>
+</blockquote>
+<p>
+This adds another panel to the window, but a special kind of panel called an arranging panel. An arranging panel is invisible (i.e. has no border or title) and is used to change the parameters used to arrange widgets. In this case, the arrangement direction is set to horizontal within the panel. Recall that, for the window itself, we're using an overall vertical arrangement of widgets. The arranging panel will be arranged within the window in that vertical arrangement, but any widgets we put inside the arranging panel will be arranged within it in a horizontal direction. Arranging panels can also be used to change the spacing of widgets, as well as indent groups of widgets. In this case, our goal is to have two pushbuttons <tt>GlowPushButtonWidget</tt> side-by-side in the otherwise vertical arrangement; we accomplish this by adding them to this arranging panel:
+</p>
+<blockquote>
+<pre>_quitButton = panel->AddPushButton("Quit", this);
+_saveButton = panel->AddPushButton("Save Image", this);</pre>
+</blockquote>
+
+<p>
+<b>Displaying the widget palette</b>
+</p>
+<p>
+Now we're done adding all the widgets. To actually arrange them in the window and display the window, we call <tt>Pack()</tt>.
+</p>
+<blockquote>
+<pre>_controlWindow->Pack();</pre>
+</blockquote>
+<p>
+<tt>Pack()</tt> arranges the entire hierarchy of widgets we created, including those inside panels. At this point, you may find it helpful to try running the program to see how the widgets actually got arranged. It should look something like the image at the beginning of this lesson. Notice how the panels enclose and separate off groups of widgets. Also, notice how the overall arrangement direction is vertical, except for the two buttons at the very bottom, which are within an arranging panel oriented horizontally.
+</p>
+<p>
+GLOW provides a number of other types of widgets. You can browse the APIs for GlowQuickPaletteWindow and GlowQuickPanelWidget to see what other widgets you can create.
+</p>
+
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowCheckBoxWidget.html">class GlowCheckBoxWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowLabeledPopupMenuWidget.html">class GlowLabeledPopupMenuWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowLabeledSliderWidget.html">class GlowLabeledSliderWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowLabelWidget.html">class GlowLabelWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowPushButtonWidget.html">class GlowPushButtonWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowQuickPaletteWindow.html">class GlowQuickPaletteWindow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowQuickPanelWidget.html">class GlowQuickPanelWidget</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Widget Events</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Now that we know how to create widgets, we need to respond to the user's manipulation of our widgets. Widget manipulations are reported as widget events, and you respond to them by creating event receiver objects, subclasses of the template <tt>TReceiver&lt;&gt;</tt>. If you remember from lesson 3, this is the same mechanism we used to receive menu events and idle events. Each widget defines its own event type.
+</p>
+
+<p>
+<b>Widget event classes</b>
+</p>
+<p>
+Let's go back once again to <tt>mandelwind.h</tt> and look at the revised class declaration.
+</p>
+<blockquote>
+<pre>class MandelWind : public GlowWindow,
+    public GlowIdleReceiver,
+    public GlowPushButtonReceiver,
+    public GlowSliderReceiver,
+    public GlowCheckBoxReceiver,
+    public GlowPopupMenuReceiver,
+    public GlowTextFieldWindowReceiver
+{
+  ...
+    virtual void OnMessage(const GlowPushButtonMessage& message);
+    virtual void OnMessage(const GlowSliderMessage& message);
+    virtual void OnMessage(const GlowCheckBoxMessage& message);
+    virtual void OnMessage(const GlowPopupMenuMessage& message);
+    virtual void OnMessage(const GlowTextFieldWindowMessage& message);
+  ...</pre>
+</blockquote>
+<p>
+Our <tt>MandelWind</tt> class now implements a number of additional receivers, one for each of the widget events we're interested in. To implement each event receiver, we inherit from the appropriate base class and implement its corresponding <tt>OnMessage()</tt> method. The message structure passed to that method will contain information on which widget was affected, what kind of event happened, and some further environment information that you can use to decide how to respond.
+</p>
+<p>
+Remember that we need to bind each widget to the receivers that should be notified of events, in this case, the <tt>MandelWind</tt>. We did this when creating the widgets (recall that we passed <tt>this</tt> in the receiver parameters). However, the receiver does not need to be a window or any other specific object, nor are we limited to a single receiver. If you want multiple objects to be notified of a widget event, simply call the <tt>Notifier()</tt> method of the widget object to get a reference to a <tt>TSender</tt>, which can be bound to additional objects. For example, we could bind our "quit" button to more objects like this, assuming <tt>myObject1</tt> and <tt>myObject2</tt> are types that inherit from <tt>GlowPushButtonReceiver</tt>...
+</p>
+<blockquote>
+<pre>_quitButton->Notifier().Bind(myObject1);
+_quitButton->Notifier().Bind(myObject2);</pre>
+</blockquote>
+
+<p>
+<b>Writing event receiver methods</b>
+</p>
+<p>
+Now let's take a look at a few examples of receiving widget events. The simplest example is the checkbox. We merely need to change the value of the class member <tt>_updateInBackground</tt> to match the new value of the widget.
+</p>
+<blockquote>
+<pre>void MandelWind::OnMessage(const GlowCheckBoxMessage& message)
+{
+    _updateInBackground = (message.state == GlowCheckBoxWidget::on);
+}</pre>
+</blockquote>
+<p>
+Here, the <tt>state</tt> field of the message gives the new state of the checkbox, which is one of the three constants <tt>GlowCheckBoxWidget::on</tt>, <tt>GlowCheckBoxWidget::off</tt> or <tt>GlowCheckBoxWidget::half</tt>. (That third state is used for three-state checkboxes but isn't applicable in our simple case.) Also note that, because we created only one check box, there isn't any ambiguity on which widget was hit.
+</p>
+<p>
+For our slider receiver, however, we connected three sliders to the same receiver. Therefore, we need to tell the sliders apart; we do this by examining the <tt>widget</tt> field of the message structure:
+</p>
+<blockquote>
+<pre>void MandelWind::OnMessage(const GlowSliderMessage& message)
+{
+    if (message.widget == _multiCycleRateSlider) {
+        // Handle multicolor cycle rate slider manipulation here...
+        _multiCycleRate = message.value;
+        _imageValid = false;
+        Refresh();
+    } else if (message.widget == _multiCycleOffsetSlider) {
+        // Handle multicolor cycle offset slider manipulation here...
+        _multiCycleOffset = message.value;
+        _imageValid = false;
+        Refresh();
+    } else if (message.widget == _iterationSlider) {
+        // Handle number of iterations slider...
+        // Respond only on slider release (i.e. non-"live" slider)
+        if (message.released) {
+            // Handle event here...
+            _data->SetThreshhold(int(message.value));
+            Refresh();
+        }
+    }
+}</pre>
+</blockquote>
+<p>
+In each case, we update the setting controlled by the slider, and then call <tt>Refresh()</tt> to post an event to refresh the image in the view window.
+</p>
+<p>
+Notice also, in this case, there are two kinds of slider events. Slider events may be sent while the slider is being dragged, or after the slider is released. This is useful for specifying whether a slider behaves in a "live" or "non-live" fashion. A "live" slider updates the characteristics it controls dynamically as it is being dragged, whereas a "non-live" slider causes an update only once it is released. To implement a live slider, you treat slider-dragged events and slider-released events in the same way. To implement a non-live slider, you ignore slider-dragged events, and only respond to slider-released events.
+</p>
+<p>
+In our case, we want the slider that controls the number of iterations to be "non-live." Because updating the image in this case is slow (i.e. it requires recomputing the mandelbrot function), we want to do it only once, when the slider is released. To detect what type of event we've received, we check the <tt>released</tt> field in the message structure. If it is set to <tt>true</tt>, the slider has been released and we should respond to the event by recomputing the image; if it is set to <tt>false</tt>, then the slider is being dragged, and we shouldn't cause a recomputation. The sliders that control multicolor cycling, however, should be "live" sliders, because updating the image for changes in the color scheme is very fast (i.e. it doesn't require recomputing the mandelbrot function). Therefore, when we handle those two sliders, we can ignore the <tt>released</tt> field because we're handling dragged and released events in the same way.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.h">mandelwind.h</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowCheckBoxMessage.html">class GlowCheckBoxMessage</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowPopupMenuMessage.html">class GlowPopupMenuMessage</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowPushButtonMessage.html">class GlowPushButtonMessage</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowSliderMessage.html">class GlowSliderMessage</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Changing the widget palette</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+We won't actually change the widget palette in our program, but since it's something that may be commonly done, I'll talk a little about it.
+</p>
+<p>
+Changing the widget palette is as simple as making changes to the widgets, and then calling <tt>Pack()</tt> again. To remove widgets from the palette, just delete them. To add new widgets to the palette, use the same methods we used to create the palette in the first place. Once you're finished removing and adding widgets, call <tt>Pack()</tt>, and the widget palette will arrange and size itself again to accomodate the new widget list.
+</p>
+
+<p>
+<b>What do you mean by "deleting" widgets?</b>
+</p>
+<p>
+It's just what it sounds like. To remove a widget, delete the widget object that was returned from the method you used to create it. For example, we stored a pointer to the number-of-iterations slider in the data member "<tt>_iterationSlider</tt>". To remove that slider, you can just
+</p>
+<blockquote>
+<pre>delete _iterationSlider;</pre>
+</blockquote>
+<p>
+Remember that some widgets (e.g. panels) can contain other widgets. If you delete a widget that contains other widgets, the contained widgets are also automatically deleted. In this way, you can delete an entire set of widgets at once. For example, the panel <tt>_multiColorControlsPanel</tt> contains two sliders, <tt>_multiCycleRateSlider</tt> and <tt>_multiCycleOffsetSlider</tt>. Deleting <tt>_multiColorControlsPanel</tt> will automatically cause the two contained sliders to be deleted as well. Additionally, all the widgets are contained within the widget palette window, so if you delete <tt>_controlWindow</tt>, the entire palette, including all the widgets, will be cleanly destroyed. That is what the <tt>MandleWind</tt> destructor does: simply delete the window.
+</p>
+
+<p>
+<b>Didn't you say in lesson 1 that deleting a window could be dangerous?</b>
+</p>
+<p>
+You don't miss much, do you? That's true, and now we have enough information to discuss why it may be dangerous, and when it's okay.
+</p>
+<p>
+Consider this common scenario: You have created a dialog box with an "OK" button. Among other things, the function of the "OK" button is to dismiss the dialog box. As we have seen, you can dismiss the dialog box by deleting the window object-- that automatically causes all the widgets within the dialog box to be deleted as well. That's easy. You write a receiver to handle events raised by presses of the "OK" button, and in the <tt>OnMessage()</tt> method of the push button receiver, you delete the window.
+</p>
+<p>
+Unfortunately, when you run the program and attempt to press the "OK" button, your program crashes and burns with a segmentation fault. What happened?
+</p>
+<p>
+The basic problem is the same as the reason why <tt>delete this;</tt> may be unsafe. When we deleted the window, we also implicitly deleted everything contained within the window, including our "OK" button. However, we are in the middle of handling an event raised by the "OK" button. When the window was deleted, the "OK" button was deleted along with GLOW's event tables for the widget, leading to the segmentation fault.
+</p>
+<p>
+Unfortunate, but there's a way around it. Use the <tt>Close()</tt> method of the window. When you call <tt>Close()</tt>, GLOW marks the window for termination but doesn't actually delete the object, letting your widgets finish handling their events. Later, when things are safe, GLOW will delete the window for you.
+</p>
+<p>
+The same thing can happen with deleting a widget. If your "OK" button were contained within a panel widget, it would also be unsafe to delete the panel widget from within a receiver of events from the "OK" button. However, widgets also provide a <tt>Close()</tt> method, so you can use it to safely delete the panel.
+</p>
+<p>
+<b>Rule of thumb:</b> If you may be handling an event raised by a widget, avoid deleting that widget or any object that contains it. Use <tt>Close()</tt> instead.
+</p>
+
+<p>
+<b>How do you "insert" a widget?</b>
+</p>
+<p>
+The only place you can add a widget is at the end, which would cause it to appear at the bottom (if the arrangement is vertical) or at the far right (if the arrangment is horizontal). However, once a widget is added, you can reposition it using the method <tt>ReorderChild()</tt> before you call <tt>Pack()</tt>. <tt>ReorderChild()</t> needs to be called as a method of the "parent" of the widget. Here is an example of its use:
+</p>
+<blockquote>
+<pre>GlowPushButtonWidget* widget1 = window->AddPushButton("Button");
+GlowPushButtonWidget* widget2 = window->AddPushButton("Insert me!");
+// At this point, widget2 is located after widget1.
+// The next line moves widget2 before widget1.
+widget2->Parent()->ReorderChild(widget2, widget1);</pre>
+</blockquote>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWidget.html">class GlowWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWindow.html">class GlowWindow</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Ready-to-use windows</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+If you looked through the new event handlers carefully, you probably noticed that there's one event that doesn't correspond to any of the widgets we created. We implemented <tt>GlowTextFieldWindowReceiver</tt>, which handles events from a ready-to-use window called, of course, a <tt>GlowTextFieldWindow</tt>. Ready-to-use windows are entire windows that may be created using a single line of code.
+</p>
+
+<p>
+<b>Creating a ready-to-use window</b>
+</p>
+<p>
+A text field window is meant to allow the user to enter a short string like a file name. It includes a prompt string, a text field, and any number of configurable pushbuttons that may be used to dismiss the window. We create a <tt>GlowTextFieldWindow</tt> in response to a press of the "save" button in <tt>OnMessage(const GlowPushButtonMessage&)</tt>:
+</p>
+<blockquote>
+<pre>if (message.widget == _saveButton) {
+    new GlowTextFieldWindow("Save Image", GlowWindow::autoPosition,
+        GlowWindow::autoPosition, "Enter file name:", 300, "image.ppm",
+        "OK\tCancel", this);
+}</pre>
+</blockquote>
+<p>
+This code creates a text field window with the title "Save Image", positioned automatically. It uses the prompt string "Enter file name:", and creates a text field of width 300 pixels with the initial value "image.ppm". It also creates two buttons: "OK" and "Cancel". Finally, it causes the window to notify <tt>this</tt>, our main <tt>MandelWind</tt>, when the user dismisses the window by pressing one of the buttons.
+</p>
+<p>
+The prompt is a <tt>GlowLabelWidget</tt>, and so you may cause it to span multiple lines by including newline characters. Also, notice the syntax for specifying buttons: a set of strings delimited by tabs. You must specify at least one button, but you may give as many as you want, as long as they fit in the window.
+</p>
+
+<p>
+<b>Ready-to-use window events</b>
+</p>
+<p>
+To receive events raised by the text field window, we inherit from <tt>GlowTextFieldWindowReceiver</tt> and implement its appropriate <tt>OnMessage()</tt> method.
+</p>
+<blockquote>
+<pre>void MandelWind::OnMessage(const GlowTextFieldWindowMessage& message)
+{
+    if (message.response == 1) return;   // Cancel button
+    // Otherwise, save the file here...
+  ...</pre>
+</blockquote>
+<p>
+Notice the query of the <tt>response</tt> field of the message. This gives the ID of the button that was pressed. Buttons are numbered beginning with 0, so our "OK" button was ID 0, and our "Cancel" button was ID 1. Here we execute the save only if the "OK" button was pressed.
+</p>
+<p>
+In addition to the text field window, there is also a ready-to-use window designed for reporting messages or getting simple yes-no responses. This window is called <tt>GlowMessageWindow</tt>, and includes a label text and a set of buttons but no text field. You can use this window, for example, to show error alerts or to request confirmation of an action such as quitting.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.h">mandelwind.h</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelwind.cpp">mandelwind.cpp</a></b>
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowMessageWindow.html">class GlowMessageWindow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowMessageWindowMessage.html">class GlowMessageWindowMessage</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowTextFieldWindow.html">class GlowTextFieldWindow</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowTextFieldWindowMessage.html">class GlowTextFieldWindowMessage</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Putting it together</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+Once again, we don't need to modify our main function in <tt>mandelglow.cpp</tt>. All the modifications were done to the window class.
+</p>
+<p>
+We do, however, need to add a set of GLOW modules to our Makefile. These modules contain the actual code that implements the different widgets we used. Here is a list of all the GLOW modules used in this lesson, and their purpose:
+</p>
+<dl>
+<dt>
+<tt>glowDebug</tt>
+<dd>
+Implements the debug system. This needs to be present in all GLOW programs. You can also use it independently.
+<dt>
+<tt>glowSenderReceiver</tt>
+<dd>
+Implements the sender-receiver system. This needs to be present in all GLOW programs. You can also use it independently.
+<dt>
+<tt>glow</tt>
+<dd>
+Implements the core GLOW classes, such as GlowWindow and GlowMenu. This needs to be present in all GLOW programs.
+<dt>
+<tt>glowAux</tt>
+<dd>
+Implements some auxiliary classes used by widgets, such as GlowColor and GlowFont. This needs to be present in all programs that use GLOW widgets.
+<dt>
+<tt>glowUtilities</tt>
+<dd>
+Implements some additional auxiliary classes such as GlowFixedSizeWindow. This needs to be present in all programs that use GLOW widgets, and may be used in other GLOW programs as well.
+<dt>
+<tt>glowWidget</tt>
+<dd>
+Implements the core widget classes. This needs to be present in all programs that use GLOW widgets. Remember that widgets also require glowAux and glowUtilities.
+<dt>
+<tt>glowCheckBoxWidget</tt>
+<dd>
+Implements the check box widget.
+<dt>
+<tt>glowLabelWidget</tt>
+<dd>
+Implements the label widget. Also required by glowMenuButtonWidget and glowSliderWidget to implement labeled popup menus and sliders.
+<dt>
+<tt>glowMenuButtonWidget</tt>
+<dd>
+Implements the menu button and popup menu widgets.
+<dt>
+<tt>glowPanelWidget</tt>
+<dd>
+Implements the panel widget.
+<dt>
+<tt>glowPushButtonWidget</tt>
+<dd>
+Implements the push button widget.
+<dt>
+<tt>glowRadioButtonWidget</tt>
+<dd>
+Implements the radio button and radio group widgets.
+<dt>
+<tt>glowScrollBarWidget</tt>
+<dd>
+Implements the scroll bar widget.
+<dt>
+<tt>glowSeparatorWidget</tt>
+<dd>
+Implements the separator widget.
+<dt>
+<tt>glowSliderWidget</tt>
+<dd>
+Implements the slider widget.
+<dt>
+<tt>glowTextData</tt>
+<dd>
+Implements some utility routines for handling editable text fields. Required for glowTextFieldWidget and a future glowTextAreaWidget (not yet available).
+<dt>
+<tt>glowTextFieldWidget</tt>
+<dd>
+Implements the text field widget. Also requires glowTextData.
+<dt>
+<tt>glowQuickPalette</tt>
+<dd>
+Implements the QuickPalette API. If you are using the QuickPalette API, you need to include this module, plus <i>all</i> the other widget modules listed above.
+<dt>
+<tt>glowTextFieldWindow</tt>
+<dd>
+Implements the TextFieldWindow ready-to-use window. This also requires glowWidget, glowLabelWidget, glowPushButtonWidget, glowTextData and glowTextFieldWidget. It does not require glowQuickPalette.
+</dl>
+<p>
+Compile and run the program. Notice that the menu we introduced in lesson 3 is no longer active, but we can now manipulate the viewer using our new widget window.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="mandelglow.cpp">mandelglow.cpp</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Source: <b><a href="Makefile">Makefile</a></b>
+</p>
+
+</blockquote>
+
+
+<p>
+<table width="100%" bgcolor="#ffffcc" cellpadding=3 cellspacing=0><tr><td>
+<font size="+1"><b>Where to go from here</b></font>
+</td></tr></table>
+</p>
+
+<blockquote>
+
+<p>
+You now have all the tools to experiment more with widgets. Try adding more widgets to the control panel. You can, for example, add another checkbox that controls whether mouse clicks default to zooming in or zooming out, so you can zoom out without requiring the use of the shift key.
+</p>
+<p>
+If you're feeling more adventurous, you can implement a third way of modifying the view: letting the user drag the image around to "pan" across the fractal landscape. In this case, there would be three modes--zoom in, zoom out and pan--so a checkbox wouldn't be appropriate for selecting the mode. You could use a group of radio buttons instead. To create a group of radio buttons, use the <tt>AddRadioGroup()</tt> method to make a widget of type <tt>GlowQuickRadioGroup</tt>, and then call the <tt>AddRadioButton()</tt> on the radio group widget to add buttons.
+</p>
+<p>
+You may also find it useful to look through the reference pages on <tt>GlowWidget</tt> and the various widget types to see what other kinds of operations can be done on them.
+</p>
+
+<p>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowQuickRadioGroupWidget.html">class GlowQuickRadioGroupWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowRadioButtonWidget.html">class GlowRadioButtonWidget</a></b>
+<br>
+<image src="../../graphics/arrowbullet.gif" border=0 width=25 height=9 alt="Link to">Reference: <b><a href="../../reference/GlowWidget.html">class GlowWidget</a></b>
+</p>
+
+</blockquote>
+
+
+<hr size=2>
+
+
+<p>
+<table cellpadding=3 cellspacing=5><tr>
+<td align=center valign=top>
+<a href="../index.html"><image src="../../graphics/revert.gif" border=0></a><br><a href="../index.html">Contents</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson3/index.html"><image src="../../graphics/back.gif" border=0></a><br><a href="../lesson3/index.html">Lesson 3</a>
+</td>
+<td align=center valign=top>
+<a href="../lesson5/index.html"><image src="../../graphics/forward.gif" border=0></a><br><a href="../lesson5/index.html">Lesson 5</a>
+</td>
+</tr></table>
+</p>
+
+
+<hr size=2>
+
+
+<p>
+<address>
+<a href="http://www.ugcs.caltech.edu/~dazuma/glow/">The GLOW Toolkit</a>
+</address>
+</p>
+
+
+</body>
+
+</html>

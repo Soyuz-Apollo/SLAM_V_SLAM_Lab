@@ -1,0 +1,993 @@
+#include <algorithm>
+#include <iostream>
+
+#include "opencv2/calib3d/calib3d.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+#include "map.hpp"
+#include "quaternion.hpp"
+#include "util.hpp"
+
+using namespace cv;
+using namespace std;
+
+/*
+ * Инициализирует карту по известному шахматному шаблону. Он задаёт абсолютный
+ * масштаб, несколько вручную инициализированных признаков для отслеживания,
+ * начало мировой системы координат и начальную позу камеры. Начало мировой
+ * системы координат находится в верхнем левом углу шаблона: ось x направлена
+ * вдоль высоты шаблона, ось y — вдоль ширины. Ось z задаётся правилом правой
+ * руки (см. solvePnP). Начальные линейная и угловая скорости считаются нулевыми.
+ *
+ * frame            Кадр в градациях серого
+ * patternSize      Размеры шаблона (см. findChessboardCorners)
+ * squareSize       Размер клетки шахматного шаблона в метрах
+ * var              Дисперсии начальных компонент состояния камеры
+ */
+bool Map::initMap(const Mat& frame, const Size& patternSize, double squareSize,
+                  const vector<double>& var) {
+
+    int w = patternSize.width;
+    int h = patternSize.height;
+
+    vector<Point2f> imageCorners;
+
+    bool patternFound = findChessboardCorners(frame, patternSize, imageCorners,
+                        CALIB_CB_ADAPTIVE_THRESH +
+                        CALIB_CB_NORMALIZE_IMAGE +
+                        CALIB_CB_FAST_CHECK);
+
+    if (!patternFound)
+        return false;
+
+    cornerSubPix(frame, imageCorners, Size(11, 11), Size(-1, -1),
+                 TermCriteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 30, 0.1));
+
+    vector<Point3f> worldCorners;
+
+    // Задаём мировую систему координат: ось y идёт вдоль ширины шаблона.
+    for (int i = 0; i < h; i++)
+        for (int j = 0; j < w; j++)
+            worldCorners.push_back(Point3d(squareSize * i, squareSize * j, 0));
+
+    Mat rvec, tvec;
+
+    // Находим позу камеры.
+    bool poseFound = solvePnP(worldCorners, imageCorners, camera.K, camera.distCoeffs, rvec, tvec,
+                              false, SOLVEPNP_ITERATIVE);
+
+    if (!poseFound)
+        return false;
+
+    Mat R, t;
+
+    // Преобразуем результат в R из мира в камеру и t как положение камеры в мире.
+    Rodrigues(rvec, R);
+    t = - R.t() * tvec;
+
+    // Вычисляем кватернион ориентации камеры.
+    Mat q = quaternionInv(computeQuaternion(rvec));
+
+    // Записываем состояние камеры в вектор карты; скорости считаются нулевыми.
+    t.copyTo(x(Rect(0, 0, 1, 3)));
+    q.copyTo(x(Rect(0, 3, 1, 4)));
+
+    // Записываем ковариационную матрицу начального состояния камеры.
+    P = Mat::diag(Mat(var));
+
+    // Берём внешние и центральный углы шахматного шаблона как начальные признаки.
+    int idx;
+    bool init = true;
+
+    idx = 0;
+    init = init && addInitialFeature(frame, imageCorners[idx], worldCorners[idx], R, t);
+
+    idx = w - 1;
+    init = init && addInitialFeature(frame, imageCorners[idx], worldCorners[idx], R, t);
+
+    idx = (h - 1) * w;
+    init = init && addInitialFeature(frame, imageCorners[idx], worldCorners[idx], R, t);
+
+    idx = w * h - 1;
+    init = init && addInitialFeature(frame, imageCorners[idx], worldCorners[idx], R, t);
+
+    idx = w * ((h - 1) / 2) + (w + 1) / 2 - 1;
+    init = init && addInitialFeature(frame, imageCorners[idx], worldCorners[idx], R, t);
+
+    if (!init) {
+
+        reset();
+        return false;
+    }
+
+    return true;
+}
+
+/*
+ * Обновляет данные камеры и признаков из общего состояния карты x и ковариации P.
+ * Выполняются только поверхностные копии. Этот метод нужен, потому что EKF
+ * обновляет x и P напрямую, а отдельные объекты camera/features сами этого
+ * не увидят.
+ */
+void Map::broadcastData() {
+
+    camera.r = x(Rect(0, 0, 1, 3));
+    camera.q = x(Rect(0, 3, 1, 4));
+    camera.v = x(Rect(0, 7, 1, 3));
+    camera.w = x(Rect(0, 10, 1, 3));
+
+    camera.R = getRotationMatrix(camera.q);
+
+    camera.P = P(Rect(0, 0, 13, 13));
+
+    for (unsigned int i = 0; i < features.size(); i++) {
+
+        features[i].pos = x(Rect(0, 13 + 3*i, 1, 3));
+        features[i].P = P(Rect(13 + 3*i, 13 + 3*i, 3, 3));
+    }
+}
+
+/*
+ * Детектирует углы и создаёт новых кандидатов в признаки, если видимых признаков
+ * мало и сейчас не отслеживаются другие кандидаты.
+ *
+ * frame    Кадр в градациях серого
+ */
+bool Map::trackNewCandidates(const Mat& frame) {
+
+    // Если видимых признаков достаточно, новые искать не нужно.
+    if (numVisibleFeatures >= minFeatureDensity)
+        return false;
+
+    // Если кандидаты уже отслеживаются, новые пока не добавляем.
+    if (!candidates.empty())
+        return false;
+
+    Mat corners = findCorners(frame);
+
+    // Если хороших углов нет, просто пропускаем этот шаг.
+    if (corners.empty())
+        return false;
+
+    // Убираем дисторсию и нормализуем пиксельные координаты.
+    Mat undistorted;
+    undistortPoints(corners, undistorted, camera.K, camera.distCoeffs);
+
+    // Добавляем z-компоненту и приводим данные к форме 3xN.
+    undistorted = undistorted.reshape(1).t();
+    undistorted.resize(3, Scalar(1));
+
+    // Берём текущие положение и поворот камеры.
+    Mat t = x(Rect(0, 0, 1, 3));
+    Mat R = getRotationMatrix(x(Rect(0, 3, 1, 4)));
+
+    // Считаем направления лучей признаков в мировой системе координат.
+    undistorted.convertTo(undistorted, CV_64FC1);
+    Mat directions = R * undistorted;
+
+    Point2d depthInterval(0.05, 5);
+    int depthSamples = 100;
+
+    // Нормализуем направления и добавляем предварительно инициализированные признаки.
+    for (int i = 0; i < directions.cols; i++) {
+
+        normalize(directions.col(i), directions.col(i));
+
+        Point2i pixel(corners.at<Point2f>(i));
+        candidates.push_back(Feature(frame, buildSquare(pixel, patchSize), R.t(), t,
+                                     directions.col(i), depthInterval, depthSamples));
+    }
+
+    return true;
+}
+
+/*
+ * Выполняет шаг предсказания расширенного фильтра Калмана.
+ * По текущим x_k|k и P_k|k вычисляет априорные x_k+1|k и P_k+1|k
+ * через модель движения камеры.
+ *
+ * dt    Интервал времени между текущим и предыдущим кадрами
+ */
+void Map::predict(double dt) {
+
+    Mat F = computeProcessMatrix(dt);
+    Mat N = computeProcessNoiseMatrix(dt, F);
+
+    P = F * P * F.t() + N;
+
+    applyMotionModel(dt);
+}
+
+/*
+ * Выполняет шаг обновления расширенного фильтра Калмана.
+ * По предсказанным x_k+1|k и P_k+1|k вычисляет исправленные x_k+1|k+1
+ * и P_k+1|k+1, измеряя известные видимые признаки карты.
+ *
+ * gray     Кадр в градациях серого для сопоставления признаков
+ * frame    Цветной кадр, используемый как холст для отрисовки
+ */
+void Map::update(const Mat& gray, Mat& frame) {
+
+    vector<int> inviewIndices;
+
+    Mat H = computeMeasurementMatrix(inviewIndices);
+
+    // Если нет признаков, которые должны быть видны, пропускаем шаг обновления.
+    if (inviewIndices.empty()) {
+
+        numVisibleFeatures = 0;
+        return;
+    }
+
+    Mat N(H.rows, H.rows, CV_64FC1, Scalar(0));
+
+    for (int i = 0; i < N.rows / 2; i++) {
+
+        N.at<double>(2*i, 2*i) = R.at<double>(0, 0);
+        N.at<double>(2*i + 1, 2*i + 1) = R.at<double>(1, 0);
+    }
+
+    // Считаем ковариацию инновации.
+    Mat S = H * P * H.t() + N;
+
+    // Строим эллипсы неопределённости вокруг предсказанных позиций признаков.
+    vector<RotatedRect> ellipses = computeEllipses(inviewPos, S);
+
+    vector<int> matchedInviewIndices;   // Позиции в inviewIndices для успешно сопоставленных признаков
+    vector<int> failedInviewIndices;    // Позиции в inviewIndices для несопоставленных признаков
+
+    vector<int> failedIndices;          // Подмножество inviewIndices: индексы несопоставленных признаков
+
+    vector<Point2d> residuals;
+
+    Feature *featuresPtr = features.data();
+
+    // Обрабатываем каждый признак, который по прогнозу должен быть виден.
+    for (unsigned int i = 0; i < ellipses.size(); i++) {
+
+        int idx = inviewIndices[i];
+
+        Feature *feature = &featuresPtr[idx];
+
+        feature->matchingAttempts++;
+
+        Mat p = x(Rect(0, 13 + 3*idx, 1, 3));
+        Mat n = feature->normal;
+        Mat view1 = feature->image;
+        Rect patch1 = feature->roi;
+        Mat R1 = feature->R;
+        Mat t1 = feature->t;
+        Mat R2 = getRotationMatrix(x(Rect(0, 3, 1, 4))).t();
+        Mat t2 = x(Rect(0, 0, 1, 3));
+
+        // Предсказываем внешний вид патча из текущей позы камеры.
+        int u, v;
+        Mat templ = camera.warpPatch(p, n, view1, patch1, R1, t1, R2, t2, u, v);
+
+        // Показываем деформированный шаблон в предсказанной позиции признака.
+        Mat colorTempl;
+        cvtColor(templ, colorTempl, COLOR_GRAY2RGB);
+        drawTemplate(frame, colorTempl, inviewPos[i], u, v);
+
+        // Если шаблон пустой, признак слишком далеко или фактически не виден.
+        if (templ.empty()) {
+
+            feature->matchingFails++;
+            failedInviewIndices.push_back(i);
+            failedIndices.push_back(idx);
+
+        } else {
+
+            // Строим прямоугольную область, внутри которой ищем шаблон.
+            Rect roi = getBoundingBox(ellipses[i], gray.size());
+
+            int x0 = max(roi.x - u, 0);
+            int y0 = max(roi.y - v, 0);
+            int x1 = min(roi.x + roi.width + templ.cols - u, gray.cols - 1);
+            int y1 = min(roi.y + roi.height + templ.rows - v, gray.rows - 1);
+
+            roi.x = x0;
+            roi.y = y0;
+            roi.width = x1 - x0 + 1;
+            roi.height = y1 - y0 + 1;
+
+            Mat image = gray(roi);
+
+            // Сопоставляем шаблон.
+            Mat ccorr;
+            matchTemplate(image, templ, ccorr, TM_CCORR_NORMED);
+
+            // Берём найденное измерение.
+            double maxVal;
+            Point2i maxLoc;
+            minMaxLoc(ccorr, NULL, &maxVal, NULL, &maxLoc);
+
+            if (maxVal > 0.5) {
+
+                int px = maxLoc.x + roi.x + u;
+                int py = maxLoc.y + roi.y + v;
+
+                residuals.push_back(Point2d(px - inviewPos[i].x, py - inviewPos[i].y));
+
+                matchedInviewIndices.push_back(i);
+
+            } else {
+
+                feature->matchingFails++;
+                failedInviewIndices.push_back(i);
+                failedIndices.push_back(idx);
+            }
+        }
+    }
+
+    // Обновляем число реально видимых, то есть успешно сопоставленных, признаков.
+    numVisibleFeatures = matchedInviewIndices.size();
+
+    if (numVisibleFeatures == 0) {
+
+        drawFeatures(frame, matchedInviewIndices, failedInviewIndices, ellipses);
+        removeBadFeatures(failedInviewIndices, failedIndices);
+        return;
+    }
+
+    // Формируем вектор невязок измерения.
+    Mat y = Mat(residuals).t();
+    y = y.reshape(1).t();
+
+    if (!failedInviewIndices.empty()) {
+
+        // Удаляем строки/столбцы для признаков, которые не удалось сопоставить.
+        H = removeRows(H, failedInviewIndices, 2);
+        S = removeRowsCols(S, failedInviewIndices, 2);
+    }
+
+    // Считаем усиление Калмана.
+    Mat K = P * H.t() * S.inv();
+
+    // Обновляем состояние карты и ковариационную матрицу.
+    x += K * y;
+    P -= K * H * P;
+
+    drawFeatures(frame, matchedInviewIndices, failedInviewIndices, ellipses);
+    removeBadFeatures(failedInviewIndices, failedIndices);
+    renormalizeQuaternion();
+}
+
+/*
+ * Добавляет начальный признак в карту. Его положение известно без
+ * неопределённости, поэтому его ковариация нулевая. Поскольку патч лежит
+ * на шахматном шаблоне, нормаль признака принимается равной оси z.
+ * Признак сразу считается видимым. Если патч выходит за границы кадра,
+ * признак не инициализируется.
+ *
+ * frame    Кадр в градациях серого
+ * pos2D    Положение признака на изображении в пикселях
+ * pos3D    Положение признака в мировой системе координат
+ * R        Поворот камеры из мира в камеру
+ * t        Положение камеры в мировой системе координат
+ */
+bool Map::addInitialFeature(const Mat& frame, const Point2f& pos2D, const Point3f& pos3D,
+                            const Mat& R, const Mat& t) {
+
+    // Расширяем вектор состояния под положение нового признака.
+    x.resize(x.rows + 3);
+
+    // Копируем положение нового признака в вектор состояния.
+    double pos3D_[] = {pos3D.x, pos3D.y, pos3D.z};
+    Mat(3, 1, CV_64FC1, pos3D_).copyTo(x(Rect(0, x.rows - 3, 1, 3)));
+
+    // Расширяем ковариационную матрицу состояния.
+    Mat tmp(P.rows + 3, P.cols + 3, CV_64FC1, Scalar(0));
+    P.copyTo(tmp(Rect(0, 0, P.cols, P.rows)));
+    P = tmp;
+
+    // Считаем нормаль патча признака.
+    double n[] = {0, 0, 1};
+    Mat normal(3, 1, CV_64FC1, n);
+
+    Point2i pixelPosition(pos2D);
+    Rect roi = buildSquare(pixelPosition, patchSize);
+
+    bool overflow = roi.x < 0 || roi.x + roi.width > frame.cols ||
+                    roi.y < 0 || roi.y + roi.height > frame.rows;
+
+    // Проверяем, не выходит ли патч признака за границы кадра.
+    if (overflow)
+        return false;
+
+    // Добавляем признак.
+    features.push_back(Feature(frame, roi, normal, R, t));
+
+    // Добавляем его позицию на изображении в список видимых признаков.
+    inviewPos.push_back(pos2D);
+
+    numVisibleFeatures++;
+
+    return true;
+}
+
+/*
+ * Сбрасывает карту к состоянию сразу после создания.
+ */
+void Map::reset() {
+
+    features.clear();
+    candidates.clear();
+    inviewPos.clear();
+
+    numVisibleFeatures = 0;
+
+    x = Mat(13, 1, CV_64FC1, Scalar(0));
+    P = Mat(13, 13, CV_64FC1, Scalar(0));
+}
+
+/*
+ * Возвращает углы, найденные детектором Shi-Tomasi. Число углов выбирается так,
+ * чтобы после добавления соответствующих предварительно инициализированных
+ * признаков число видимых признаков в кадре по возможности достигло максимума.
+ *
+ * frame    Кадр в градациях серого
+ */
+Mat Map::findCorners(const Mat& frame) {
+
+    Mat corners;
+
+    int maxCorners = maxFeatureDensity - numVisibleFeatures;
+    int minDistance = 60;
+    double qualityLevel = 0.2;
+
+    Mat mask(frame.size(), CV_8UC1, Scalar(0));
+
+    // Оставляем отступ по краям маски, чтобы найденные углы лежали внутри кадра
+    // с запасом и не терялись сразу при движении камеры. Отступ должен быть
+    // больше patchSize/2, чтобы патчи новых признаков помещались в кадр.
+    int pad = 30;
+    mask(Rect(pad, pad, mask.cols - 2 * pad, mask.rows - 2 * pad)).setTo(Scalar(255));
+
+    for (unsigned int i = 0; i < inviewPos.size(); i++) {
+
+        Rect roi = buildSquare(inviewPos[i], 2 * minDistance);
+
+        roi.x = max(0, roi.x);
+        roi.y = max(0, roi.y);
+
+        if (roi.x + roi.width > frame.cols)
+            roi.width = frame.cols - roi.x;
+        if (roi.y + roi.height > frame.rows)
+            roi.height = frame.rows - roi.y;
+
+        // Обновляем маску, запрещая область вокруг i-го видимого признака.
+        mask(roi).setTo(Scalar(0));
+    }
+
+    goodFeaturesToTrack(frame, corners, maxCorners, qualityLevel, minDistance, mask);
+
+    return corners;
+}
+
+/*
+ * Применяет функцию перехода состояния к текущей оценке. Метод должен
+ * вызываться после computeProcessMatrix и computeProcessNoiseMatrix, так как
+ * они ожидают последнюю исправленную апостериорную оценку в x.
+ *
+ * dt    Интервал времени между текущим и предыдущим кадрами
+ */
+void Map::applyMotionModel(double dt) {
+
+    x(Rect(0, 0, 1, 3)) += x(Rect(0, 7, 1, 3)) * dt;
+
+    if (x.at<double>(10, 0) != 0 || x.at<double>(11, 0) != 0 || x.at<double>(12, 0) != 0)
+        x(Rect(0, 3, 1, 4)) = quaternionMultiply(
+                                  x(Rect(0, 3, 1, 4)),
+                                  computeQuaternion(x(Rect(0, 10, 1, 3)) * dt)
+                              );
+}
+
+/*
+ * Возвращает якобиан функции перехода состояния по полному состоянию
+ * (r, q, v, w, f1, ..., fn). Матрица вычисляется в текущей оценке состояния
+ * при предположении нулевого шума процесса. Метод нужно вызывать перед
+ * applyMotionModel, потому что applyMotionModel обновляет x.
+ *
+ * dt    Интервал времени между текущим и предыдущим кадрами
+ */
+Mat Map::computeProcessMatrix(double dt) {
+
+    Mat F = Mat::eye(P.size(), CV_64FC1);
+
+    // Задаём D(r_new)/D(v_old).
+
+    F.at<double>(0, 7) = dt;
+    F.at<double>(1, 8) = dt;
+    F.at<double>(2, 9) = dt;
+
+    // Считаем D(q_new)/D(q(w*dt)).
+
+    Mat Q1(4, 4, CV_64FC1);
+
+    // Текущий кватернион позы q_old.
+    double a1 = x.at<double>(3, 0);
+    double b1 = x.at<double>(4, 0);
+    double c1 = x.at<double>(5, 0);
+    double d1 = x.at<double>(6, 0);
+
+    // Строка 1.
+    Q1.at<double>(0, 0) =  a1;
+    Q1.at<double>(0, 1) = -b1;
+    Q1.at<double>(0, 2) = -c1;
+    Q1.at<double>(0, 3) = -d1;
+
+    // Строка 2.
+    Q1.at<double>(1, 0) =  b1;
+    Q1.at<double>(1, 1) =  a1;
+    Q1.at<double>(1, 2) = -d1;
+    Q1.at<double>(1, 3) =  c1;
+
+    // Строка 3.
+    Q1.at<double>(2, 0) =  c1;
+    Q1.at<double>(2, 1) =  d1;
+    Q1.at<double>(2, 2) =  a1;
+    Q1.at<double>(2, 3) = -b1;
+
+    // Строка 4.
+    Q1.at<double>(3, 0) =  d1;
+    Q1.at<double>(3, 1) = -c1;
+    Q1.at<double>(3, 2) =  b1;
+    Q1.at<double>(3, 3) =  a1;
+
+    Mat Q2(4, 3, CV_64FC1);
+
+    double w1 = x.at<double>(10, 0);
+    double w2 = x.at<double>(11, 0);
+    double w3 = x.at<double>(12, 0);
+
+    if (w1 == 0 && w2 == 0 && w3 == 0) {
+
+        // Считаем D(q(w*dt))/D(w_old).
+
+        Q2.setTo(Scalar(0));
+
+        Q2.at<double>(1, 0) = 0.5 * dt;
+        Q2.at<double>(2, 1) = 0.5 * dt;
+        Q2.at<double>(3, 2) = 0.5 * dt;
+
+    } else {
+
+        // Задаём D(q_new)/D(q_old).
+
+        // Кватернион поворота q(w*dt).
+        Mat q = computeQuaternion(x(Rect(0, 10, 1, 3)) * dt);
+
+        double a2 = q.at<double>(0, 0);
+        double b2 = q.at<double>(1, 0);
+        double c2 = q.at<double>(2, 0);
+        double d2 = q.at<double>(3, 0);
+
+        // Строка 1.
+        F.at<double>(3, 3) =  a2;
+        F.at<double>(3, 4) = -b2;
+        F.at<double>(3, 5) = -c2;
+        F.at<double>(3, 6) = -d2;
+
+        // Строка 2.
+        F.at<double>(4, 3) =  b2;
+        F.at<double>(4, 4) =  a2;
+        F.at<double>(4, 5) =  d2;
+        F.at<double>(4, 6) = -c2;
+
+        // Строка 3.
+        F.at<double>(5, 3) =  c2;
+        F.at<double>(5, 4) = -d2;
+        F.at<double>(5, 5) =  a2;
+        F.at<double>(5, 6) =  b2;
+
+        // Строка 4.
+        F.at<double>(6, 3) =  d2;
+        F.at<double>(6, 4) =  c2;
+        F.at<double>(6, 5) = -b2;
+        F.at<double>(6, 6) =  a2;
+
+        // Считаем D(q(w*dt))/D(w_old).
+
+        double w11 = w1 * w1;
+        double w22 = w2 * w2;
+        double w33 = w3 * w3;
+
+        double norm2 = w11 + w22 + w33;
+        double norm = sqrt(norm2);
+
+        double c = cos(0.5 * dt * norm);
+        double s = sin(0.5 * dt * norm);
+
+        double z = s / norm;
+
+        double dq1dw_ = - 0.5 * dt * z;
+        double dq_dw_ = 0.5 * dt * c / norm2 - z / norm2;
+
+        double w12 = w1 * w2;
+        double w13 = w1 * w3;
+        double w23 = w2 * w3;
+
+        // Строка 1.
+        Q2.at<double>(0, 0) = dq1dw_ * w1;
+        Q2.at<double>(0, 1) = dq1dw_ * w2;
+        Q2.at<double>(0, 2) = dq1dw_ * w3;
+
+        // Строка 2.
+        Q2.at<double>(1, 0) = dq_dw_ * w11 + z;
+        Q2.at<double>(1, 1) = dq_dw_ * w12;
+        Q2.at<double>(1, 2) = dq_dw_ * w13;
+
+        // Строка 3.
+        Q2.at<double>(2, 0) = dq_dw_ * w12;
+        Q2.at<double>(2, 1) = dq_dw_ * w22 + z;
+        Q2.at<double>(2, 2) = dq_dw_ * w23;
+
+        // Строка 4.
+        Q2.at<double>(3, 0) = dq_dw_ * w13;
+        Q2.at<double>(3, 1) = dq_dw_ * w23;
+        Q2.at<double>(3, 2) = dq_dw_ * w33 + z;
+    }
+
+    // Задаём D(q_new)/D(w_old).
+
+    F(Rect(10, 3, 3, 4)) = Q1 * Q2;
+
+    return F;
+}
+
+/*
+ * Возвращает W * Q * W^t, где Q — ковариация шума процесса,
+ * а W — якобиан функции перехода состояния по вектору шума
+ * (V1, V2, V3, W1, W2, W3). Он вычисляется в текущей оценке состояния
+ * при нулевом шуме процесса. Метод нужно вызывать перед applyMotionModel,
+ * потому что applyMotionModel обновляет x.
+ *
+ * dt    Интервал времени между текущим и предыдущим кадрами
+ * F     Якобиан функции перехода состояния по x
+ */
+Mat Map::computeProcessNoiseMatrix(double dt, const Mat& F) {
+
+    Mat W0(7, 6, CV_64FC1, Scalar(0));
+
+    // Задаём D(r_new)/D(V).
+
+    W0.at<double>(0, 0) = dt;
+    W0.at<double>(1, 1) = dt;
+    W0.at<double>(2, 2) = dt;
+
+    // Задаём D(q_new)/D(W).
+
+    F(Rect(10, 3, 3, 4)).copyTo(W0(Rect(3, 3, 3, 4)));
+
+    // Считаем W * Q * W^t.
+
+    Mat Q = A * dt * dt;
+    Mat W0_Q = W0 * Q;
+    Mat W0_Q_t = W0_Q.t();
+    Mat W0_Q_W0 = W0_Q * W0.t();
+
+    Mat N(P.size(), CV_64FC1, Scalar(0));
+
+    W0_Q_W0.copyTo(N(Rect(0, 0, 7, 7)));
+    W0_Q.copyTo(N(Rect(7, 0, 6, 7)));
+    W0_Q_t.copyTo(N(Rect(0, 7, 7, 6)));
+    Q.copyTo(N(Rect(7, 7, 6, 6)));
+
+    return N;
+}
+
+/*
+ * Возвращает якобиан функции измерения признаков по полному состоянию
+ * (r, q, v, w, f1, ..., fn). Матрица вычисляется в предсказанной априорной
+ * оценке, поэтому метод нужно вызывать только после applyMotionModel.
+ * Также он обновляет предсказанные пиксельные положения видимых признаков
+ * inviewPos и заполняет индексы признаков, которые должны быть видны.
+ */
+Mat Map::computeMeasurementMatrix(vector<int>& inviewIndices) {
+
+    inviewPos.clear();
+
+    // Берём предсказанный поворот камеры из мировой системы в систему камеры.
+    Mat R = getRotationMatrix(x(Rect(0, 3, 1, 4))).t();
+
+    // Берём предсказанное положение камеры в мировой системе координат.
+    Mat t = x(Rect(0, 0, 1, 3));
+
+    vector<Point3d> points3D_(features.size());
+
+    // Формируем вектор положений признаков.
+    for (unsigned int i = 0; i < points3D_.size(); i++)
+        points3D_[i] = Point3d(x(Rect(0, 13 + 3*i, 1, 3)));
+
+    vector<Point2d> points2D_;
+
+    // Проецируем все признаки в текущий вид камеры.
+    camera.projectPoints(R, t, points3D_, points2D_);
+
+    vector<Point3d> points3D;
+
+    Rect box(Point2i(0, 0), camera.frameSize);
+
+    for (unsigned int i = 0; i < points2D_.size(); i++) {
+
+        if (box.contains(points2D_[i])) {
+
+            inviewIndices.push_back(i);
+            inviewPos.push_back(points2D_[i]);
+
+            points3D.push_back(points3D_[i]);
+        }
+    }
+
+    Mat H(2 * inviewIndices.size(), x.rows, CV_64FC1, Scalar(0));
+
+    Mat R1, R2, R3, R4;
+
+    getRotationMatrixDerivatives(x(Rect(0, 3, 1, 4)), R1, R2, R3, R4);
+
+    double fx = camera.K.at<double>(0, 0);
+    double fy = camera.K.at<double>(1, 1);
+
+    double k1 = camera.distCoeffs.at<double>(0, 0);
+    double k2 = camera.distCoeffs.at<double>(0, 1);
+    double p1 = camera.distCoeffs.at<double>(0, 2);
+    double p2 = camera.distCoeffs.at<double>(0, 3);
+    double k3 = camera.distCoeffs.at<double>(0, 4);
+
+    for (int i = 0; i < H.rows / 2; i++) {
+
+        Mat pt = Mat(points3D[i]) - t;
+
+        Mat pCam = R * pt;
+
+        double xCam = pCam.at<double>(0, 0);
+        double yCam = pCam.at<double>(1, 0);
+        double zCam = pCam.at<double>(2, 0);
+
+        double zCam2 = zCam * zCam;
+
+        Mat pBar1 = R1 * pt;
+        Mat pBar2 = R2 * pt;
+        Mat pBar3 = R3 * pt;
+        Mat pBar4 = R4 * pt;
+
+        // D(xn)/D(r): производные нормализованной координаты xn по положению камеры.
+        double dxndr1 = (R.at<double>(2, 0) * xCam - R.at<double>(0, 0) * zCam) / zCam2;
+        double dxndr2 = (R.at<double>(2, 1) * xCam - R.at<double>(0, 1) * zCam) / zCam2;
+        double dxndr3 = (R.at<double>(2, 2) * xCam - R.at<double>(0, 2) * zCam) / zCam2;
+
+        // D(xn)/D(q): производные нормализованной координаты xn по ориентации камеры.
+        double dxndq1 = (pBar1.at<double>(0, 0) * zCam - pBar1.at<double>(2, 0) * xCam) / zCam2;
+        double dxndq2 = (pBar2.at<double>(0, 0) * zCam - pBar2.at<double>(2, 0) * xCam) / zCam2;
+        double dxndq3 = (pBar3.at<double>(0, 0) * zCam - pBar3.at<double>(2, 0) * xCam) / zCam2;
+        double dxndq4 = (pBar4.at<double>(0, 0) * zCam - pBar4.at<double>(2, 0) * xCam) / zCam2;
+
+        // D(yn)/D(r): производные нормализованной координаты yn по положению камеры.
+        double dyndr1 = (R.at<double>(2, 0) * yCam - R.at<double>(1, 0) * zCam) / zCam2;
+        double dyndr2 = (R.at<double>(2, 1) * yCam - R.at<double>(1, 1) * zCam) / zCam2;
+        double dyndr3 = (R.at<double>(2, 2) * yCam - R.at<double>(1, 2) * zCam) / zCam2;
+
+        // D(yn)/D(q): производные нормализованной координаты yn по ориентации камеры.
+        double dyndq1 = (pBar1.at<double>(1, 0) * zCam - pBar1.at<double>(2, 0) * yCam) / zCam2;
+        double dyndq2 = (pBar2.at<double>(1, 0) * zCam - pBar2.at<double>(2, 0) * yCam) / zCam2;
+        double dyndq3 = (pBar3.at<double>(1, 0) * zCam - pBar3.at<double>(2, 0) * yCam) / zCam2;
+        double dyndq4 = (pBar4.at<double>(1, 0) * zCam - pBar4.at<double>(2, 0) * yCam) / zCam2;
+
+        double xn = xCam / zCam;
+        double yn = yCam / zCam;
+
+        // D(r2)/D(r): производные r^2 = xn^2 + yn^2 по положению камеры.
+        double dr2dr1 = 2 * (xn * dxndr1 + yn * dyndr1);
+        double dr2dr2 = 2 * (xn * dxndr2 + yn * dyndr2);
+        double dr2dr3 = 2 * (xn * dxndr3 + yn * dyndr3);
+
+        // D(r2)/D(q): производные r^2 = xn^2 + yn^2 по ориентации камеры.
+        double dr2dq1 = 2 * (xn * dxndq1 + yn * dyndq1);
+        double dr2dq2 = 2 * (xn * dxndq2 + yn * dyndq2);
+        double dr2dq3 = 2 * (xn * dxndq3 + yn * dyndq3);
+        double dr2dq4 = 2 * (xn * dxndq4 + yn * dyndq4);
+
+        double r2 = xn * xn + yn * yn;
+        double r4 = r2 * r2;
+        double r6 = r4 * r2;
+
+        double a = 1 + k1*r2 + k2*r4 + k3*r6;
+        double b = k1 + 2*k2*r2 + 3*k3*r4;
+
+        double ddr1 = 2 * (xn * dyndr1 + yn * dxndr1);
+        double ddr2 = 2 * (xn * dyndr2 + yn * dxndr2);
+        double ddr3 = 2 * (xn * dyndr3 + yn * dxndr3);
+
+        double ddq1 = 2 * (xn * dyndq1 + yn * dxndq1);
+        double ddq2 = 2 * (xn * dyndq2 + yn * dxndq2);
+        double ddq3 = 2 * (xn * dyndq3 + yn * dxndq3);
+        double ddq4 = 2 * (xn * dyndq4 + yn * dxndq4);
+
+        // Производные u по положению камеры r.
+        double dudr1 = fx * (dxndr1*a + xn*dr2dr1*b + p1*ddr1 + p2*(dr2dr1 + 4*xn*dxndr1));
+        double dudr2 = fx * (dxndr2*a + xn*dr2dr2*b + p1*ddr2 + p2*(dr2dr2 + 4*xn*dxndr2));
+        double dudr3 = fx * (dxndr3*a + xn*dr2dr3*b + p1*ddr3 + p2*(dr2dr3 + 4*xn*dxndr3));
+
+        // Производные u по положению признака x.
+        double dudx1 = - dudr1;
+        double dudx2 = - dudr2;
+        double dudx3 = - dudr3;
+
+        // Производные u по ориентации камеры q.
+        double dudq1 = fx * (dxndq1*a + xn*dr2dq1*b + p1*ddq1 + p2*(dr2dq1 + 4*xn*dxndq1));
+        double dudq2 = fx * (dxndq2*a + xn*dr2dq2*b + p1*ddq2 + p2*(dr2dq2 + 4*xn*dxndq2));
+        double dudq3 = fx * (dxndq3*a + xn*dr2dq3*b + p1*ddq3 + p2*(dr2dq3 + 4*xn*dxndq3));
+        double dudq4 = fx * (dxndq4*a + xn*dr2dq4*b + p1*ddq4 + p2*(dr2dq4 + 4*xn*dxndq4));
+
+        // Производные v по положению камеры r.
+        double dvdr1 = fy * (dyndr1*a + yn*dr2dr1*b + p2*ddr1 + p1*(dr2dr1 + 4*yn*dyndr1));
+        double dvdr2 = fy * (dyndr2*a + yn*dr2dr2*b + p2*ddr2 + p1*(dr2dr2 + 4*yn*dyndr2));
+        double dvdr3 = fy * (dyndr3*a + yn*dr2dr3*b + p2*ddr3 + p1*(dr2dr3 + 4*yn*dyndr3));
+
+        // Производные v по положению признака x.
+        double dvdx1 = - dvdr1;
+        double dvdx2 = - dvdr2;
+        double dvdx3 = - dvdr3;
+
+        // Производные v по ориентации камеры q.
+        double dvdq1 = fy * (dyndq1*a + yn*dr2dq1*b + p2*ddq1 + p1*(dr2dq1 + 4*yn*dyndq1));
+        double dvdq2 = fy * (dyndq2*a + yn*dr2dq2*b + p2*ddq2 + p1*(dr2dq2 + 4*yn*dyndq2));
+        double dvdq3 = fy * (dyndq3*a + yn*dr2dq3*b + p2*ddq3 + p1*(dr2dq3 + 4*yn*dyndq3));
+        double dvdq4 = fy * (dyndq4*a + yn*dr2dq4*b + p2*ddq4 + p1*(dr2dq4 + 4*yn*dyndq4));
+
+        H.at<double>(2*i, 0) = dudr1;
+        H.at<double>(2*i, 1) = dudr2;
+        H.at<double>(2*i, 2) = dudr3;
+        H.at<double>(2*i, 3) = dudq1;
+        H.at<double>(2*i, 4) = dudq2;
+        H.at<double>(2*i, 5) = dudq3;
+        H.at<double>(2*i, 6) = dudq4;
+
+        H.at<double>(2*i, 13 + 3*i) = dudx1;
+        H.at<double>(2*i, 13 + 3*i+1) = dudx2;
+        H.at<double>(2*i, 13 + 3*i+2) = dudx3;
+
+        H.at<double>(2*i+1, 0) = dvdr1;
+        H.at<double>(2*i+1, 1) = dvdr2;
+        H.at<double>(2*i+1, 2) = dvdr3;
+        H.at<double>(2*i+1, 3) = dvdq1;
+        H.at<double>(2*i+1, 4) = dvdq2;
+        H.at<double>(2*i+1, 5) = dvdq3;
+        H.at<double>(2*i+1, 6) = dvdq4;
+
+        H.at<double>(2*i+1, 13 + 3*i) = dvdx1;
+        H.at<double>(2*i+1, 13 + 3*i+1) = dvdx2;
+        H.at<double>(2*i+1, 13 + 3*i+2) = dvdx3;
+    }
+
+    return H;
+}
+
+void Map::drawFeatures(Mat& frame,
+                       const vector<int>& matchedInviewIndices, const vector<int>& failedInviewIndices,
+                       const vector<RotatedRect>& ellipses, bool drawEllipses) {
+
+    if (drawEllipses) {
+
+        // Рисуем эллипсы успешно сопоставленных признаков красным.
+        for (unsigned int i = 0; i < matchedInviewIndices.size(); i++) {
+
+            int idx = matchedInviewIndices[i];
+
+            drawEllipse(frame, ellipses[idx], Scalar(0, 0, 255));
+        }
+
+        // Рисуем эллипсы признаков с неудачным сопоставлением синим.
+        for (unsigned int i = 0; i < failedInviewIndices.size(); i++) {
+
+            int idx = failedInviewIndices[i];
+
+            drawEllipse(frame, ellipses[idx], Scalar(255, 0, 0));
+        }
+
+    } else {
+
+        // Рисуем успешно сопоставленные признаки красным.
+        for (unsigned int i = 0; i < matchedInviewIndices.size(); i++) {
+
+            int idx = matchedInviewIndices[i];
+
+            drawSquare(frame, inviewPos[idx], 11, Scalar(0, 0, 255));
+        }
+    }
+}
+
+void Map::removeBadFeatures(const vector<int>& failedInviewIndices, const vector<int>& failedIndices) {
+
+    vector<int> badFeaturesVecIndices;  // Индексы для удаления из features, x и P
+    vector<int> badFeaturesPosIndices;  // Индексы для удаления из inviewPos
+
+    for (unsigned int i = 0; i < failedIndices.size(); i++) {
+
+        int idx = failedIndices[i];
+        int j = failedInviewIndices[i];
+
+        double numFails = features[idx].matchingFails;
+        double numAttemps = features[idx].matchingAttempts;
+
+        if (numFails / numAttemps > failTolerance) {
+
+            badFeaturesVecIndices.push_back(idx);
+            badFeaturesPosIndices.push_back(j);
+        }
+    }
+
+    removeIndices(features, badFeaturesVecIndices);
+    removeIndices(inviewPos, badFeaturesPosIndices);
+
+    Mat x_Features = x(Rect(0, 13, 1, x.rows - 13));
+    Mat P_Features = P(Rect(13, 13, x.rows - 13, x.rows - 13));
+
+    x_Features = removeRows(x_Features, badFeaturesVecIndices, 3);
+    P_Features = removeRowsCols(P_Features, badFeaturesVecIndices, 3);
+}
+
+/*
+ * Нормализует кватернион ориентации в состоянии системы и обновляет ковариацию
+ * через распространение ошибки первого порядка. Функцию нужно вызывать после
+ * обновления EKF, потому что исправленный кватернион может перестать быть единичным.
+ */
+void Map::renormalizeQuaternion() {
+
+    Mat q = x(Rect(0, 3, 1, 4));
+
+    double q1 = q.at<double>(0, 0);
+    double q2 = q.at<double>(1, 0);
+    double q3 = q.at<double>(2, 0);
+    double q4 = q.at<double>(3, 0);
+
+    double q11 = q1 * q1;
+    double q22 = q2 * q2;
+    double q33 = q3 * q3;
+    double q44 = q4 * q4;
+
+    double j1 = q22 + q33 + q44;
+    double j2 = q11 + q33 + q44;
+    double j3 = q11 + q22 + q44;
+    double j4 = q11 + q22 + q33;
+
+    double j12 = - q1 * q2;
+    double j13 = - q1 * q3;
+    double j14 = - q1 * q4;
+    double j23 = - q2 * q3;
+    double j24 = - q2 * q4;
+    double j34 = - q3 * q4;
+
+    Mat J = Mat::eye(P.size(), P.type());
+
+    J.at<double>(3, 3) = j1;
+    J.at<double>(3, 4) = j12;
+    J.at<double>(3, 5) = j13;
+    J.at<double>(3, 6) = j14;
+
+    J.at<double>(4, 3) = j12;
+    J.at<double>(4, 4) = j2;
+    J.at<double>(4, 5) = j23;
+    J.at<double>(4, 6) = j24;
+
+    J.at<double>(5, 3) = j13;
+    J.at<double>(5, 4) = j23;
+    J.at<double>(5, 5) = j3;
+    J.at<double>(5, 6) = j34;
+
+    J.at<double>(6, 3) = j14;
+    J.at<double>(6, 4) = j24;
+    J.at<double>(6, 5) = j34;
+    J.at<double>(6, 6) = j4;
+
+    double qnorm = norm(q);
+
+    J(Rect(3, 3, 4, 4)) /= qnorm * qnorm * qnorm;
+
+    // Нормализуем кватернион.
+    normalize(q, q);
+
+    // Обновляем ковариационную матрицу.
+    P = J * P * J.t();
+}

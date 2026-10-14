@@ -1,0 +1,3 @@
+SceneLib/MonoSLAM: this directory compiles to make the MonoSLAM
+library, which provides support for single camera SLAM applications
+within the SceneLib framework.

@@ -1,0 +1,394 @@
+SceneLib: The Scene Library
+---------------------------
+Software for real-time simultaneous localisation and mapping.
+
+See latest documentation here and at http://www.doc.ic.ac.uk/~ajd/Scene/
+
+
+Version 1.0 release 12th May 2006
+
+
+Time-stamp: <06/05/09 00:36:31 ajd>
+
+Andrew Davison
+Imperial College London
+ajd@doc.ic.ac.uk
+
+http://www.doc.ic.ac.uk/~ajd/Scene/
+
+-------------------------------------------------------------------------------
+
+README Contents
+---------------
+
+1. Introduction
+2. SceneLib Directory Contents
+3. General Documentation
+4. Known Bugs
+
+-------------------------------------------------------------------------------
+
+1. Introduction
+ 
+Scene is a flexible software library for SLAM in C++, providing a
+generic way to implement Simultaneous Localisation and Mapping across
+different applications without the effort of replicating the essential
+methods. SLAM is all about the sequential propagation of probability
+distributions representing uncertain estimates of the position of a
+moving robot or other body and the locations of world features which
+it observes. Scene aims to separate the core algorithms of probability
+propagation from the details of a particular application required for
+success in a real-world application. These details can be plugged into
+Scene as relatively straightforward "model" classes implemented by the
+user to a well-defined template to represent the specifics of a real
+system. 
+
+This software has evolved gradually but significantly from an original
+system for SLAM using computer vision, specific to one robot. Its
+generalisation was driven by the need and desire to apply the many
+transferrable components to various problems in computer vision and
+robotics. 
+
+
+In the last few years up to 2006 I have had great success in using
+Scene as the engine behind my work in real-time 3D SLAM using a single
+agile camera, which has been coined "MonoSLAM" (or sometimes "Single
+Camera SLAM"). This work required various developments to Scene which
+I have now finally had the chance to consolidate and tidy up into a
+state which I am happy to release once again. Much of the clutter in
+the library has been reduced, and various aspects have been
+modernised. However, the design remains substantially the same as
+earlier versions.
+
+
+Scene has been developed very much with real-world, real-time
+applications as its goal, but with flexibility with respect to the
+specifics of robot and sensors.  This has been substantially achieved,
+to the extent that a robot with any type of movement characteristics
+can be combined with any type of sensor measuring any types of
+feature; or with several different types of sensor measuring different
+types of feature. There are some desirable capabilities here which
+have not yet been achieved --- for instance, the ability to measure
+the same type of feature with different types of sensor (two different
+types of camera mounted on a robot observing the same landmarks, for
+instance). Further generalisation of the modelling framework is
+therefore still needed.  Eventually, I would like to reach the
+situation where Scene could be used to do motion estimation and
+mapping for any number of robots or other sensors, moving or
+stationary, observing various aspects of the static or dynamic
+surroundings. It should encompass all types of tracking problems as
+well as traditional SLAM systems.
+
+In addition, an original design goal was to offer also:
+
+-  Flexibility with respect to algorithm choice, provided by multiple
+   methods for propagating probability distributions
+
+As things stand, this has not really been achieved --- mostly because
+of the overwhelming success of the single full-covariance Extended
+Kalman Filter SLAM map in the applications in which I have been
+interested, and my still firm belief that it is hard to beat in many
+cases for performance versus computational cost. The EKF is therefore
+the only uncertainty management tool currently offered in Scene.  This
+means that it is best-suited to relatively small-scale map-building
+within which the limitations of the Gaussian representations the EKF
+uses and its computational scaling difficulties do not become
+significant.  However, increasing flexibility here remains a goal for
+the future, in particular through sub-mapping approaches which make
+large maps from loosely-coupled arrays of small full-covariance maps.
+
+We believe that this type of generic design both enables and is
+supported by an open-source approach to software distribution. The
+flexibility means that hopefully the software will be useful to a wide
+range of people with different robot systems or implementational
+goals, while it is hoped that these users will be able contribute in
+turn to the code base and make the system even more widely applicable.
+
+Download the MonoSLAMGlow package for the single camera SLAM application
+which showcases the Scene Library. Currently the SceneApp applications
+which were released with older versions of Scene are not compatible
+with this release and are unsupported.
+
+
+-------------------------------------------------------------------------------
+
+2. SceneLib Directory Contents
+
+The main subdirectories of SceneLib are Scene, SceneImproc and
+MonoSLAM, each of which contains code which is compiled into a
+separate library of the same name, and a directory Docs with some
+documentation in LaTeX form.
+
+Of the libraries which make up SceneLib, the core library is Scene,
+which provides all the main support for map-building applications. The
+SceneImproc library contains some image processing functions such as
+correlation and searching which may be of general use in applications
+using vision. The MonoSLAM library provides specific support for
+SLAM with a single camera.
+
+The detailed significant contents of SceneLib are as follows:
+
+Docs/	
+	models.tex:
+	Detailed information on the generic framework in Scene for
+    representing the specifics of applications with mathematical
+    models represent spe
+    in
+	Scene, and explanation of the procedure needed to apply Scene
+	to a new application.
+
+Scene/
+	models_base.h/cpp:
+
+	Contains abstract base classes for robot motion and
+	feature measurement models. Applications must supply specific
+	derived definitions.
+
+	scene_single.h/cpp:
+	feature.h/cpp:
+	Contains the Scene_Single class which stores an
+	full-covariance EKF map of the locations of a robot and
+	features. The Feature class represents one feature in the map
+	(and as it stands this class only makes sense in the context
+	of a Scene_Single map I think). The name Scene_Single was
+	historically to differentiate this full-covariance map from
+	other mapping options including sub-map methods, but is
+	currently the only map type offered.
+
+	kalman.cpp:
+	The Kalman class contains the functions and data to perform updates
+	on the data stored in Scene_Single using the EKF.
+
+	internal_measurement.h/cpp
+	Support for internal measurements (where a robot has the
+	ability to query its own state regardless of features, as with
+	inertial sensing).
+
+	sim_or_rob.cpp:
+	simul.cpp:
+	Provides the capability to compile all applications in a simulation
+	mode as well as their real mode, and noisy simulation of the robot 
+	and its environment when we want to run in simulation mode. Contains 
+	the Simulation class.
+
+	settings.h/cpp
+	Handling for classes to be initialised from a text file passed
+	in at the launch of an executable.
+
+	control_general.cpp:
+	Contains some generally-applicable functions for controlling these
+	classes which can be called from inidividual application programs.
+
+	newbits.cpp
+	Some little bits used by the rest.
+
+	exceptions.h
+	Handler for runtime errors.
+
+	identifier.h/cpp
+	Base class for pieces of data identifying features (e.g. image
+	patches)
+
+SceneImproc/
+	correlate.cpp:
+	Functions for image correlation.
+
+	improc.cpp:
+	Functions for image searching and detection of features of interest.
+
+MonoSLAM/
+
+	models_impulse.h/cpp
+	Defines a motion model, derived from the generic
+	ThreeD_Motion_Model in Scene, which represents the smooth
+	motions of an agile camera.
+
+	models_zeroorder.h/cpp
+	An alternative constant position (random walk) motion model.
+
+	models_wideangle.h/cpp
+	Feature measurement model classes for a camera measuring point
+	features
+
+	model_creators.h/cpp
+	Classes able to instantiate instances of the model classes used
+	here when presented with string labels from an initialisation
+	file.
+
+	widecamera.h/cpp
+	An abstraction of a camera with or without radial distortion (this 
+	is used by models_wideangle.h but could also be used more widely).
+
+	identifier_imagemono.h 
+	Defines a class wrapping an image patch
+	for use as the identifier of a feature in the Scene map.
+
+	monoslam.h/cpp
+	monoslaminterface.h
+	Defines MonoSLAM, the class which controls the main operation
+	of the program. All main classes are instantiated as members
+	of MonoSLAM. The main real-time action sequence of commands
+	lives here, plus various functions for reporting the state and
+	changing parameters. The file monoslaminterface.h simply
+	defines some extra interfaces to MonoSLAM as might be required
+	if it were to be used as a stand-along class.
+
+	robot.h/cpp
+	The class Robot implements an interface the Scene library
+	understands to making measurements and controlling a robot
+	(although we do not necessarily have a robot here).  Robot is
+	derived from Sim_Or_Rob, an interface class in SceneLib/Scene
+	for either simulation or robot applications.
+
+	nonoverlappingregion.h/cpp
+	Defines a service function to find a region in an image to
+	search for new features based on the current feature
+	distribution and camera state.
+
+	threeddraw.h/cpp
+	Functions to draw the state of the camera and features using
+	the VW::ThreeDToolGLCommon family of 3D display
+	classes. Contains different functions for drawing an external
+	view or inside-out camera-centred views for monitoring
+	tracking or doing augmented reality. These functions are not
+	GUI specific but only depend on the VW::ThreeDToolGLCommon
+	base class and OpenGL.
+
+include/
+libs/
+	After compilation and 'make install', include and library
+	files appear here.
+		
+-------------------------------------------------------------------------------
+
+3. General Documentation
+
+Models Hierarchy --- representing the types of objects in the world
+-------------------------------------------------------------------
+
+See also the document models.ps available in the Docs/ directory (and
+on the Scene homepage).
+
+The model classes in SceneLib/Scene/models_***.h specify robot motion
+models and feature measurement models (in terms of functions and
+Jacobians as in Kalman Filter language). The scene class has a
+particular vehicle motion model attached to it, and then each feature
+has a feature measurement class attached. A lot of calculation work is
+done tidily within these classes. In a program, for efficiency there
+should only be one instantiation of each specific type of relevant
+model. A pointer to one of these classes is then what is referred to
+by each feature or by the robot. Access to the functionality of the
+model classes follows a standard pattern of public member functions of
+a form like: func_a_and_b(c, d). This is a function taking arguments c
+and d (usually matrices) and producing results a and b. The results
+are written into results spaces called aRES and bRES from where they
+can be copied after the calculation. Note that it is advisable to copy
+these results immediately after the calculation  has finished since
+another call to a model function could overwrite them.
+
+There are three types of model used: Motion_Model,
+Feature_Measurement_Model and Internal_Measurement_Model.  The base
+classes are found in SceneLib/Scene/models_base.cpp. This is not yet
+really a general modelling scheme, and is something which would like
+to generalise in the future, but represents a good basis for modelling
+a robot and its sensors independently. A specific application will
+define its own model classes which are derived from these.
+See the diagrams Scene/Class/motion_models.[ps,jpg] and
+Scene/Class/feature_models.[ps,jpg] for a visual representation of the
+Motion_Model and Feature_Measurement_Model hierarchies.
+
+A Motion_Model models how a robot (in the very general sense of a moving
+platform with sensors) moves in response to control inputs.
+
+A Feature_Measurement_Model models how a particular type of feature is 
+measured by the robot's sensors.
+
+An Internal_Measurement_Model represents measurements which the robot
+is able to make which depend just on its state, not features. An example
+in the Double_Robot case is a measurement made of the position of one robot
+by the other.
+
+From the Motion_Model base class are derived the dimension-type
+classes OneD_Motion_Model and TwoD_Motion_Model (with
+ThreeD_Motion_Model obviously planned for future implementation). What
+ever the specifics of the robot in question, knowing which
+dimensionality if moves in allows in particular a minimal state
+representation of it's position in this dimension to be represented
+here. Measurements of the location of features, and the process of
+drawing a representation of the robot's postion in a graphical
+display, for instance, depend only on this rather than the potentially
+more complicated specific state representation, so we define this
+here.
+
+Specific motion models are then derived from the dimension-type
+classes. These specific motion models can have state and control
+vectors of any size.
+
+In a similar way, from the Feature_Measurement_Model base class we
+derive dimension-type classes such as Point_Feature_Measurement_Model,
+from which specific measurement models reflecting the particular
+behaviour of sensors are derived in turn.
+
+Scene Class Hierarchy --- storing estimates of the state of the world
+---------------------------------------------------------------------
+
+The Scene class hierarchy is where the estimated positions of the
+vehicle and features are stored, along with their uncertainties. A
+Scene object can be thought of as a snapshot estimation of the state
+of the world as the robot knows it at a given time.
+
+Within Scene, a Feature object is used for each scene feature
+stored, and a linked list of the features stored is kept. The
+Matrix_Block class holds a matrix chunk and these are used in linked
+lists to store the big covariance matrix (only the top-right half of
+it since it's symmetrical) relating the uncertaties in all the
+features.
+
+Scene itself is a base class providing an interface to the map storage
+functionality. The kind of interfaces it provides are for instance the
+ability to add and delete features from the map, tag features as 
+"selected" for measurements, and output data on robot and feature
+estimates. 
+
+Derived from Scene are specific classes which can take different
+approaches to storing map data. The standard type is Scene_Single,
+which stores all features known about in a single state vector and
+large fully-coupled covariance matrix. This is suitable for a normal
+SLAM approach to map-building.
+
+The Kalman Class --- updating estimates of the state of world
+-------------------------------------------------------------
+
+The Kalman class is currently where filtering calculations, changing
+robot and map estimates in response to motion and measurements,
+actually take place.
+
+At the moment, different filtering styles are supported through a
+switching style. This has been chosen rather than class derivation
+since when testing different filters it is necessary to compare them,
+and with this method we can perform parallel updates with two types at
+once. Nevertheless, this may change soon.
+
+The most basic type is the "slow" filter which implements a Kalman
+update in the most obvious way, dealing with large matrices. The
+alternative "fast" method achieves the same results but with more
+though applied to which parts of matrices are interacting and with for
+instance prior allocation of heavily used matrices. 
+
+The Simulation Class --- simulating the world
+---------------------------------------------
+
+This was once a nice generic class for simulation but I have not used
+it for a long time and it may no longer do anything useful.
+
+
+-------------------------------------------------------------------------------
+
+4. Known Bugs
+
+next_free_label in scene.h and simul.h should keep generating unique
+labels, but will fail at int overflow (hello if you're reading this in
+the year 3000).
+
+------------------------------------------------------------------------------ 
+

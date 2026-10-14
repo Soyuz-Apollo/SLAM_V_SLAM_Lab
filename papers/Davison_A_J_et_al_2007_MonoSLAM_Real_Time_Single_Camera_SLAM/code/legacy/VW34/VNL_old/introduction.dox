@@ -1,0 +1,54 @@
+/** 
+ * @page VNLPage VNL
+ *
+ * (NB: This library is a reduced version of the VXL project numerics library)
+ *
+ * The numerics library, %VNL is intended to provide an environment for numerical
+ * programming which combines the ease of use of packages like Mathematica and
+ * Matlab with the speed of C and the elegance of C++.
+ * It provides a C++ interface to the high-quality Fortran routines made available
+ * in the public domain by numerical analysis researchers.
+ *
+ * %Matrix and vector classes include
+ * 
+ *     - VNL::Vector : Standard vector class
+ *     - VNL::Matrix : Standard matrix class
+ *     - VNL::VectorFixed : Fixed size vectors
+ *     - VNL::MatrixFixed : Fixed size matrices
+ * 
+ * %Matrix decompositions include
+ * 
+ *     - VNL::SVD : Singular value decomposition
+ *     - VNL::QR : QR decomposition
+ *     - VNL::Cholesky : Cholesky decomposition (for symmetric matrices)
+ *     - VNL::SymmetricEigensystem : Eigen-decomposition
+ *     - VNL::RealEigensystem : Eigen-decomposition
+ *     - VNL::ComplexEigensystem : Eigen-decomposition
+ *     - VNL::GeneralizedEigensystem : Eigen-decomposition
+ * 
+ * Optimisation routines include
+ * 
+ *     - VNL::Amoeba : Downlhill simplex algorithm
+ *     - VNL::Brent : The %Brent 1D minimizer
+ *     - VNL::ConjugateGradient
+ *     - VNL::LBFGS
+ *     - VNL::LevenbergMarquardt
+ *     - VNL::Powell
+ * 
+ * Support for manipulating polynomials
+ * 
+ *     - VNL::RealPolynomial
+ *     - VNL::RNPolySolve
+ *     - VNL::RPolyRoots : Finding roots of a real polynomial
+ *     - VNL::CPolyRoots : Finding roots of a %complex polynomial
+ * 
+ * Useful utility functions
+ * 
+ *     - Common functions (in VNL::Math)
+ *     - VNL::FFT1D : 1D Fast Fourier Transform
+ *     - VNL::FFT2D : 2D Fast Fourier Transform
+ *     - VNL::Gamma
+ *     - VNL::GammaP,VNL::GammaQ
+ *     - VNL::Erf
+ *     - VNL::CumProbChi2 : CDF of chi-squared distribution
+ */

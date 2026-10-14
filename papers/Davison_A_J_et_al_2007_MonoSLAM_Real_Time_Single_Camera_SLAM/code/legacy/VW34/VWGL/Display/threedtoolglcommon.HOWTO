@@ -1,0 +1,284 @@
+/*
+ * @file   threedtoolgtkglwidget.HOWTO
+ * @author Andrew Davison 
+ * @date   28/10/02
+ *
+ * (c) Copyright University of Oxford
+ *     All rights reserved
+ *
+ */
+
+3D Tool OpenGL Widget Class ThreeDToolGLWidget
+==============================================
+
+This is a class for general display of 3D scenes using OpenGL.
+See example programs in VWExamples.
+
+The class provides mouse dragging support for moving 3D viewpoint.
+Left button: 	3D rotate (using a "virtual trackball" which works 
+		reasonably well but has room for improvement...)
+Middle button: 	Left/right/up/down translation
+Right button:	Dragging up/down produces depth translation
+
+
+ThreeDToolGLWidget does most of the work but is an abstract base class.
+Current usable child classes are:
+
+ThreeDToolGTKGLWidget: a GTK widget which it uses the gtkglarea widget
+to provide hardware-accelerated 3D graphics in a GTK window.
+
+ThreeDToolGLUTGLWidget: a version which uses GLUT (the GL Utility
+Toolkit which is usually availabe in OpenGL installations) to open a
+window without needing other GUI stuff. This works at the moment for
+one GL window per application only (due to some rather nasty global
+variables).
+
+It is straightforward to derive further child classes if you want to
+use the widget in another GUI where you have access to OpenGL. Your
+child class needs to supply these functions: 
+unsigned int WindowWidth(), WindowHeight() {return the size of the GL drawing window}
+void SwapBuffers() {perform a GL swap buffers operation to put draw
+                    stuff on screen}
+void MakeCurrent() {ensure that any GL drawing commands are going to
+                    the right window}
+void RequestDraw() {tell the GUI to redisplay the GL window}
+And then keep an eye on mouse events, calling the functions Dragged(),
+DragRelease() and Clicked() with the appropriate arguments when required.
+
+Instantiation
+-------------
+
+The ThreeDToolGTKGLWidget constructors are called with integers
+camera_width and camera_height. We keep to a virtual camera analogy
+and pretend that the 3D scene is being viewed by a physical camera
+with this fixed image size.  If the widget is stretched with the
+mouse, the 3D view will stretch, but keep the same aspect ratio and we
+will still refer to "camera coordinates" which go from zero to
+camera_width and camera_height across the view (0, 0 being in the
+top-left corner).  We have translated OpenGL's projection and viewport
+parameters into the fku, fkv (focal length in pixels) and u0, v0
+(principal point) form which is familiar from the usual pinhole camera
+model used in computer vision.  On instantiation the class's internal
+camera parameters are set to default values but these should normally
+be overridden with your own choices (see the section on virtual camera
+calibration below). (Certainly if you are going to use the class for
+augmented reality the virtual camera parameters should be set equal to
+those of the real camera providing the images.)
+
+(The class also has an orthographic projection mode. See more in
+"virtual camera calibration" below.)
+
+Using the class in a program
+----------------------------
+
+The user must supply functions for drawing 3D objects and optionally
+for processing selection events. These functions should be members of
+a class in the application program and are registered using the SigC
+protocol like this:
+
+threedtool_widget->DrawEvent.connect(SigC::slot(this, 
+			       &MyClass::Draw));
+threedtool_widget->ProcessHitsEvent.connect(SigC::slot(this, 
+			       &MyClass::ProcessHits));
+
+The function registered with DrawEvent is the application Draw()
+function which should draw all the 3D objects your program wants to
+display. The widget will call this function whenever it needs to
+redisplay things (after a mouse drag, when the window is resized,
+etc.) All Draw() needs to do do is provide commands to draw all your
+objects relative to the world coordinate frame --- you don't have to
+worry about the moving virtual camera. Usually, just draw the objects
+using ThreeDToolGLWidget's built in commands for drawing points,
+lines, etc.  These are self-explanatory: rectangles and textured
+rectangles have positions specified by the position in the world frame
+of their centre, their orientation relative to the world frame (qWO is
+the transformation, specified as a quaternion, between the world frame
+and an object frame, aligned with the rectangle such that y is up and
+x is right), and their width and height. Textures are supplied as VW
+Images.  Note that the current implementation of texture mapping is
+inefficient because textures are copied and reallocated every time
+they are drawn.
+
+Colours and materials 
+--------------------- 
+
+The colour or material type of an object can be set before drawing
+SetMaterial() (for a few predefined material types) or SetPenColour()
+(with R, G, B, alpha arguments).
+
+Drawing your own objects
+------------------------
+
+To draw objects more advanced than the types provided by the class
+it is quite possible to call your own object drawing functions using
+raw OpenGL commands from your application Draw() function. See drawing
+position and rotation centre stuff below though.
+
+Changing the drawing position
+-----------------------------
+
+The class duplicates OpenGL's glPushMatrix/glPopMatrix functionality for
+changing the drawing frame of reference. This is not something that
+need be worried about when drawing simple scenes but is useful when
+drawing compound objects which have repeated structure and several
+natural frames of reference --- such as a car with four identical
+wheels. The way this would normally be done in raw OpenGL is to 
+have functions (or classes) which draw the body of a car and a wheel
+at the origin of coordinates. The car would then be drawn recursively
+something like this:
+1. Use glMatrixMode(GL_MODELVIEW); glPushMatrix() to save the world
+frame of reference onto the matrix stack.
+2. Use glTranslate() and glRotate() to move the drawing frame to the
+position of the car centre.
+3. Draw the car body.
+4. Loop over wheels:	1. glPushMatrix() again to push the car centre
+			position onto the stack.
+			2. glTranslate(), glRotate() to wheel position
+			3. Draw wheel
+			4. glPopMatrix() to recover car centre position
+5. glPopMatrix() to recover world frame.
+
+The problem with doing this when using the 3D Widget is that although
+OpenGL knows where it is drawing the objects when the drawing frame is
+changed, the 3D Widget doesn't. It can't include object positions in
+the RotationCentre framework (see below) for calculating mouse drag
+rotations and axis extent, etc. Therefore this functionality is
+duplicated in the class. The functions TranslateDrawingPosition() and
+RotateDrawingPosition() can be used instead of glTranslate() and
+glRotate(). These functions call their GL equivalents, but also update
+storage in the class of the current drawing frame. After moving the
+drawing position like this, any drawing commands will draw in the new
+drawing frame; however, their effect on the rotation centre will take
+place in the world coordinate frame as is desired. The class also
+provides PushDrawingPosition() and PopDrawingPosition() duplicate the
+functionality of glPopMatrix() and glPushMatrix().
+
+Rotation centre / axis calculation
+----------------------------------
+
+When the user drags with the mouse to rotate the 3D view, it is
+necessary for the class to know something about the distribution of
+objects in the scene so that it can move the virtual camera about
+their approximate centre (calculated crudely as the centre of a
+worldframe-aligned cuboid containing the objects). When any of the
+standard object types are drawn (using DrawPoint(), DrawLine(), etc.) 
+their positions are automatically included in this calculation so you
+don't have to worry about it. If you draw your own objects with raw
+OpenGL code though, you can manually include points in the calculation
+with the IncludeInRotationCentre() function. See about drawing
+position above.
+
+From the application Draw() function, a set of automatically scaled
+axes can be drawn using the DrawAxes() function. The size of the axes
+drawn is calculated based on all the points registered with the
+rotation centre. The axes should be drawn last in the Draw() function
+so that they take account of all the objects drawn.
+
+Virtual camera position
+-----------------------
+
+The position of the camera can be set at any time with
+SetCameraPositionOrientation(). Camera position is defined with
+respect to the origin of the world coordinate frame by a translation
+vector in the world frame and the quaternion qWC describing the
+transformation between the world frame W and the camera frame C which
+is fixed relative to the camera. In this widget as in GL, we use the
+convention that at zero rotation (a null vnl quaternion is (qx, qy,
+qz, q0) = (0, 0, 0, 1) --- note that vnl puts the non-axis part of the
+quaternion as the last element rather than first as is usual) the
+camera points such that positive x is right, positive y is up and
+positive z is backwards. Normally, SetCameraPositionOrientation() only
+need be called once when the widget is initialised and then after that
+camera position is handled by the mouse drags --- but if required the
+camera position can be manipulated manually by repeated calls (these
+should probably not be in the application Draw() function).
+(Note: for more info. about quaternions see amongst others
+http://www.robots.ox.ac.uk/~ajd/Scene/models.ps)
+
+Virtual camera calibration
+--------------------------
+
+Call SetCameraParameters() to set the parameters for the virtual
+camera which views the 3D scene in terms of fku, fkv, u0, v0 camera
+parameters as they are normally used in computer vision. Being able to
+do this means that the 3D class can be used for augmented reality: the
+DrawCinemaScreen() function draws an image on a texture placed so that
+it will exactly fill the viewing screen at a specified depth (distance
+from the virtual camera). If the camera parameters set using
+SetCameraParameters() are exactly the same as those of the real camera
+which took the image, and if the position of the virtual camera is set
+to be the same as its estimated position in the real world, then 3D
+objects drawn in the display will appear correctly overlaid on the image.
+
+Orthographic mode: set orthographic projection mode with a call to
+SetOrthographicCameraParameters() instead. In this case the arguments
+are xW, yH, u0, v0. Now xW and yH are a width and height in REAL WORLD
+units (i.e. metres, assuming that the sizes of all the objects you
+draw are in metres). This is because in orthographic projection we
+have to define a strict rectangular box extending into space: only
+objects within this volume are visible. The section of this box will
+be scaled to fit exactly into the camera_width, camera_height camera
+size you defined the class with. Usually you should set xW and yW to
+have the same ratio as camera_width and camera_height (otherwise
+objects will appear squashed).
+
+Special drawing commands
+------------------------
+
+Drawing ellipsoids:
+3D covariance ellipsoids are drawn with the DrawCovariance()
+function. Arguments are r0, the centre of the ellipsoid, P, a
+3*3 covariance matrix and the number of standard deviations to draw.
+
+DrawCameraGraphic() draws a slightly cute representation of a camera.
+
+2D drawing commands
+-------------------
+
+Some 2D drawing commands are supplied for use in augmented reality
+applications. All arguments for these functions (Draw2DRectangle(),
+Draw2DCircle(), etc.) are specified in camera coordinates. These 2D
+elements are completely independent of the 3D transformations
+affecting all the 3D elements drawn: they will always appear on top of
+other elements.
+
+These commands internally use Set2DDrawingPosition() to move to a
+drawing position on the near clipping plane, also scaling so that
+drawing can be done in camera coordinates. Set2DDrawingPosition()
+could also potentially be used externally to draw your own 2D objects
+(making sure to do the normal push and pop either side).
+
+
+Selection
+---------
+
+The class provides support for selection of drawn features using the
+mouse (using GL's built-in selection mode). Any drawn objects which
+are required to be selectable must be registered as such: a non-zero
+integer label is attached to each. This can be done simply for the
+class's built-in objects: each draw function (e.g. DrawPoint()) has a
+second version with an extra integer argument: calling this version
+rather than the first from the application's Draw() function registers
+that object for selection with the specified integer label.  The
+application program must supply a ProcessHits(int selected_item,
+double camera_x, double camera_y) function (registered with the 3D
+class's ProcessHitsEvent event), and this will be called with the
+label of the object if a mouse click hits one of the registered
+objects. (In the case of overlapping objects being clicked, in theory
+the one nearest the camera should be returned though I am not sure
+this is working properly). The application program can then process
+this to take some action.  Also returned will be the x, y coordinates
+of the clicked point in 2D camera coordinates (which are invariant to
+stretches of the 3D window).  Might be useful for augmented reality.
+
+If you wish to draw your own objects using raw OpenGL code it is still
+possible to register them for selection. Use the OpenGL command
+glLoadName(int name) with the integer label you wish to use for the
+object before you start drawing it, then glLoadName(0) when drawing is
+finished.
+
+Saving images from the 3D display
+---------------------------------
+
+Snapshots of the current 3D view can be saved to images using the
+GetImage() function.

@@ -1,0 +1,149 @@
+
+SHELL = /bin/bash
+
+#---Architecture dependent stuff---
+ARCH = $(shell arch -k)
+OS = $(shell uname -s)
+
+#---Generic include stuff---
+VW = VW
+INCPATH = $(VWDIR)/include
+INCDIR = $(INCPATH)/$(VW)
+INCFILES = $(patsubst %.h,$(INCDIR)/$(MODULE)/%.h,$(HFILES)) 
+# convert name to lowercase for include file
+LOWMODULE =$(shell echo $(MODULE) | tr A-Z a-z )
+INCFILE = $(INCDIR)/$(LOWMODULE).h
+
+ifeq ($(OPTIMIZE),)
+	OPTIMIZE = -O6
+endif
+
+#---compilation options---
+CC = gcc
+CXX = g++
+CFLAGS = -I$(INCPATH) $(OPTIMIZE) -Wall -D$(OS) -D_REENTRANT
+CXXFLAGS += -I$(INCPATH) $(OPTIMIZE) -Wall -D$(OS) -D_REENTRANT
+
+#---link and library options---
+LIBDIR = -L$(VWDIR)/lib-$(ARCH) -L/usr/lib -L/usr/X11R6/lib
+LIB = $(VWDIR)/lib-$(ARCH)/lib$(LIBNAME).a
+LIBS = 
+ARFLAGS = rl
+
+##include $(VWDIR)/Make/Makefile.config
+##include $(VWDIR)/Make/Makefile.chkconf
+
+#---configuration options---
+
+ifeq ($(MEMORYSAFE), true)
+	LIBS += -lefence
+endif
+ifeq ($(IEEE1394), true)
+	LIBS += -ldc1394_control -lraw1394 -lpthread
+	CXXFLAGS += -I/usr/include/libdc1394
+endif
+ifeq ($(X), true)
+	LIBS += 	-lXaw
+	CXXFLAGS +=	-I/usr/X11R6/include
+	CFLAGS += 	-I/usr/X11R6/include
+endif
+ifeq ($(GTK), true)
+	GTKINC = $(shell gtkmm-config --cflags)
+	GTKLIB = $(shell gtkmm-config --libs)
+	CXXFLAGS += $(GTKINC) \
+		-I/usr/include/sigc++-1.0 -I/usr/lib/sigc++-1.0/include \
+		-I/usr/include/sigc++ -I/usr/lib/sigc++/include
+	LIBDIR += $(GTKLIB)
+	LIBS += -lgdk -lgtkmm -lgdkmm -lgtk -lpthread
+endif
+ifeq ($(GTKGL), true)
+	LIBS += -lGL -lGLU -lgtkglmm
+endif
+ifeq ($(XFORMS), true)
+	LIBS += -lforms -lXaw
+endif
+ifeq ($(Wx), true)
+	CXXFLAGS += `wx-config --cxxflags`
+	LIBS += `wx-config --libs`
+endif
+
+
+
+
+#---make rules---
+all: $(TARGETS)
+
+OFILES += $(patsubst %.cpp,%.o,$(CCFILES)) 
+OFILES += $(patsubst %.c,%.o,$(CFILES)) 
+
+INSTALLEDHFILES = $(patsubst %.h,$(INCDIR)/$(MODULE)/%.h,$(HFILES)) 
+INSTALLEDHFILES += $(patsubst %.tpp,$(INCDIR)/$(MODULE)/%.tpp,$(TFILES)) 
+
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) -c $<
+
+#$(LIB): $(OFILES)
+#	ar $(ARFLAGS) $(LIB) $(OFILES)
+#	ranlib $@
+
+$(INCDIR)/$(MODULE)/%.h: %.h
+	mkdir -p $(INCDIR)/$(MODULE)
+	install -D $< $@
+
+$(INCDIR)/$(MODULE)/%.tpp: %.tpp
+	mkdir -p $(INCDIR)/$(MODULE)
+	install -D $< $@
+
+#---Create a .h file with name MODULE which includes all the relevant .h files
+$(INCFILE): $(HFILES) $(TFILES) Makefile
+	if [ "$(MODULE)" == "" ]; then echo Nothing needs doing; else \
+		mkdir -p $(INCDIR)/$(MODULE); \
+		echo "#ifndef _$(MODULE)_h_" >$(INCFILE);	\
+		echo "#define _$(MODULE)_h_" >>$(INCFILE);\
+		echo >>$(INCFILE);\
+		for i in $(HFILES); do (echo \#include \"$(MODULE)/$$i\" >>$(INCFILE)); done; \
+		echo >>$(INCFILE); \
+		echo "#endif /* _$(MODULE)_h_ */" >>$(INCFILE); \
+		echo $(MODULE).h > $(INCDIR)/$(MODULE).files; \
+		for i in $(HFILES); do (echo $(MODULE)/$$i >> $(INCDIR)/$(MODULE).files); done; \
+		for i in $(TFILES); do (echo $(MODULE)/$$i >> $(INCDIR)/$(MODULE).files); done; \
+	fi
+
+headers: $(INCFILE) $(INSTALLEDHFILES)
+	for f in $(SUBDIRS); do (if [ -d $$f ]; then cd $$f; $(MAKE) headers; fi) done; \
+
+libs: 	$(LIB)
+
+$(LIB):	$(OFILES)
+	ar $(ARFLAGS) $(LIB) $(OFILES)
+	ranlib $(LIB)
+
+subdirs:
+	for f in $(SUBDIRS); do (if [ -d $$f ]; then cd $$f; $(MAKE); fi) done
+
+flags:
+	echo $(GTK) $(IEEE1394)
+
+depend: .depend_done
+
+.depend_done: $(INCFILE)
+	rm -f .depend
+	-g++ -MM $(CXXFLAGS) $(CCFILES) >> .depend
+	touch .depend_done
+
+# clean just removes object files
+clean:
+	for f in $(SUBDIRS); do (if [ -d $$f ]; then cd $$f; $(MAKE) clean; fi) done
+	rm -f *.o *~
+
+# realclean removes objects, depend files, installed headers and libraries
+realclean:
+	for f in $(SUBDIRS); do (if [ -d $$f ]; then cd $$f; $(MAKE) realclean; fi) done
+	rm -f $(REALCLEANFILES) *.o *~ .depend .depend_done .tmpdepend $(INCFILE) $(INSTALLEDHFILES) $(LIB)
+	/bin/rm -rf $(INCDIR)/$(MODULE)*
+
+-include .depend

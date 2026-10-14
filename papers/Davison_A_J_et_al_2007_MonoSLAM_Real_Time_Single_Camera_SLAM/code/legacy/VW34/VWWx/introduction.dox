@@ -1,0 +1,18 @@
+/** 
+ * @page VWWxPage VWWx
+ *
+ * The WxWidgets extension library provides displays (2D and 3D) and user interface elements that use 
+ * the WxWidgets widget set. In particular it provides
+ *
+ * Displays (2D)
+ *
+ *     - VW::DisplayWxGLWidget : A display widget that must be embedded in a WxWidgets interface
+ *
+ * Displays (3D)
+ *
+ *     - VW::ThreeDToolWxGLWidget : A version of the 3D tool which is a WxWidgets widget
+ *
+ * Interface elements
+ *
+ *     - VW::SequencerFileWx : A widget to control the VW::SequencerFile
+ */
