@@ -14,14 +14,15 @@
 
 ## Инал и Висхан
 
-- [ ] Изучить три датасета, которые передаст Ярослав Олегович.
+- [ ] Изучить назначенные датасеты:
+  - [ ] [EuRoC MAV Dataset](datasets/EuRoC_MAV.md).
+  - [ ] [TUM VI Dataset](datasets/TUM_VI.md).
+  - [ ] [OpenLORIS-Scene Dataset](datasets/OpenLORIS_Scene.md).
 - [ ] Подготовить презентацию по датасетам:
   - [ ] Объяснить, что представляет собой каждый датасет.
   - [ ] Добавить скриншоты по каждому датасету.
   - [ ] Оценить, насколько каждый датасет подходит для нашего проекта внутри здания.
   - [ ] Оценить универсальность каждого датасета: для каких других условий и задач его можно использовать.
-
-В предыдущем списке были указаны EuRoC MAV и TUM VI. Итоговый список из трёх датасетов пока не зафиксирован.
 
 ## Тимур и Абдула
 
@@ -44,5 +45,6 @@
 - [Статья MonoSLAM и русский перевод](papers/Davison_A_J_et_al_2007_MonoSLAM_Real_Time_Single_Camera_SLAM/README.md).
 - [EuRoC MAV Dataset](datasets/EuRoC_MAV.md).
 - [TUM VI Dataset](datasets/TUM_VI.md).
+- [OpenLORIS-Scene Dataset](datasets/OpenLORIS_Scene.md).
 - [Репозиторий лаборатории](https://github.com/Soyuz-Apollo/SLAM_V_SLAM_Lab).
 - [Видео по GitHub из предыдущего списка задач](https://www.youtube.com/watch?v=VJm_AjiTEEc).
